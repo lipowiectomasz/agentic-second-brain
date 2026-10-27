@@ -9,3 +9,4 @@ export { sectorColorHex, sectorColorToken, sectorColorTokens, sectorColors } fro
 export type { SectorColorToken } from "./sector-colors";
 export { auditActions } from "./audit-action";
 export type { AuditAction, AuditEvent } from "./audit-action";
+export { deriveSlug } from "./slug";

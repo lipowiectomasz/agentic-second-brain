@@ -1,4 +1,5 @@
 import type { SectorKind, SectorRole } from "@cortex/core";
+export { deriveSlug } from "@cortex/core/slug";
 import type { Caller } from "@cortex/server-kit";
 import { isOrgAdmin } from "@cortex/server-kit";
 
@@ -28,18 +29,6 @@ export function canWriteSector(caller: Caller, sectorKind: SectorKind, role: Sec
 export function canDecideRequest(caller: Caller, actorRole: SectorRole | null, requestedRole: SectorRole): boolean {
   if (isOrgAdmin(caller)) return true;
   return actorRole === "maintainer" && requestedRole === "reader";
-}
-
-export function deriveSlug(name: string): string {
-  return name
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/ł/g, "l")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 64)
-    .replace(/-+$/g, "");
 }
 
 export function roleFromTeamRoles(roles: string[]): SectorRole {
