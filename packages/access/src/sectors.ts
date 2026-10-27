@@ -70,7 +70,10 @@ export async function listSectorSummaries(caller: Caller, deps: AccessDeps): Pro
         withTimeout("tablesDB.listRows files latest", () =>
           deps.admin.tables.listRows({ databaseId: deps.ids.tables, tableId: "files", queries: [Query.equal("sectorId", [sector.id]), Query.orderDesc("$updatedAt"), Query.limit(1), Query.select(["$id", "$updatedAt"])] }),
         ),
-        withTimeout("teams.get", () => deps.admin.teams.get({ teamId: sector.teamId })),
+        withTimeout("teams.get", () => deps.admin.teams.get({ teamId: sector.teamId })).catch((error: unknown) => {
+          if (error instanceof AppwriteException && error.code === 404) return { total: 0 };
+          throw error;
+        }),
       ]);
       return {
         ...toView(sector, sector.kind === "spine" ? "spine-reader" : null, null),

@@ -11,5 +11,4 @@ export const schema: SchemaSpec = {
   functions: [healthFunction],
 };
 
-export { documentStatuses } from "./files";
 export type * from "./types";

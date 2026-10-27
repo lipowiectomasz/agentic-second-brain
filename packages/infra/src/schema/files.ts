@@ -1,7 +1,5 @@
-import { fileKinds } from "@cortex/core";
+import { documentStatuses, fileKinds } from "@cortex/core";
 import type { TableSpec } from "./types";
-
-export const documentStatuses = ["draft", "approved", "in_progress", "implemented", "superseded", "deprecated"] as const;
 
 export const filesTable: TableSpec = {
   id: "files",
