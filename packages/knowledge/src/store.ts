@@ -71,6 +71,10 @@ export function toFileRow(row: RawFileRow): FileRow {
   };
 }
 
+export function embeddingKey(title: string, heading: string, text: string): string {
+  return `${title}\u0000${heading}\u0000${text}`;
+}
+
 export class KnowledgeStore {
   readonly tables: TablesDB;
   readonly vectors: VectorsDB;
@@ -122,6 +126,17 @@ export class KnowledgeStore {
       this.tables.listRows<Models.Row & { content: string }>({ databaseId: this.ids.tables, tableId: fileVersionsTableId, queries: [...queries, Query.equal("hash", [hash]), Query.orderDesc("version")] }),
     );
     return byHash.rows[0]?.content ?? null;
+  }
+
+  async chunkEmbeddings(fileId: string, fileHash: string, title: string): Promise<Map<string, number[]>> {
+    const list = await withTimeout("vectorsDB.listDocuments embeddings", () =>
+      this.vectors.listDocuments<Models.Document & { embeddings: number[]; metadata: { heading?: string; text?: string } }>({
+        databaseId: this.ids.vectors,
+        collectionId: chunksCollectionId,
+        queries: [Query.equal("metadata.fileId", [fileId]), Query.equal("metadata.fileHash", [fileHash]), Query.select(["embeddings", "metadata"]), Query.limit(100)],
+      }),
+    );
+    return new Map(list.documents.map((document) => [embeddingKey(title, document.metadata.heading ?? "", document.metadata.text ?? ""), document.embeddings]));
   }
 
   async purgeOrphanChunks(fileId: string, keepHash: string | null): Promise<number> {
