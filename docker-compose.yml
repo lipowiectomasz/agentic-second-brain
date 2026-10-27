@@ -1,0 +1,5 @@
+include:
+  - path: appwrite/docker-compose.yml
+    env_file: appwrite/.env
+    project_directory: appwrite
+  - docker-compose.app.yml
