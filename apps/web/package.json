@@ -9,6 +9,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@cortex/access": "0.1.0",
+    "@cortex/audit": "0.1.0",
     "@cortex/config": "0.1.0",
     "@cortex/core": "0.1.0",
     "@cortex/server-kit": "0.1.0",

@@ -2,9 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   agentRules: false,
+  allowedDevOrigins: ["web"],
   cacheComponents: true,
   partialPrefetching: true,
-  transpilePackages: ["@cortex/config", "@cortex/server-kit", "@cortex/core"],
+  transpilePackages: ["@cortex/access", "@cortex/audit", "@cortex/config", "@cortex/core", "@cortex/server-kit"],
   turbopack: {
     rules: {
       "*.css": {
