@@ -11,7 +11,7 @@ RUN := HOST_UID=$(shell id -u) HOST_GID=$(shell id -g) CORTEX_ENV_FILE=$(ENV_FIL
 TOOLS := $(RUN) tools
 TOOLS_NET := $(RUN) tools-net
 
-.PHONY: appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
+.PHONY: test-e2e admin-grant admin-revoke appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
 
 appwrite-install:
 	test -f appwrite/.env || docker run --rm \
@@ -34,7 +34,7 @@ down:
 	docker compose --profile embedding down
 
 app-up:
-	HOST_UID=$(shell id -u) HOST_GID=$(shell id -g) $(COMPOSE_APP) up -d --build web
+	HOST_UID=$(shell id -u) HOST_GID=$(shell id -g) $(COMPOSE_APP) up -d --build --force-recreate web
 
 install:
 	$(TOOLS) sh -c 'if [ -f package-lock.json ]; then npm ci; else npm install; fi'
@@ -68,3 +68,12 @@ build:
 
 shell:
 	$(TOOLS) bash
+
+admin-grant:
+	$(TOOLS_NET) npm run admin-grant -w @cortex/infra -- --email "$(EMAIL)"
+
+admin-revoke:
+	$(TOOLS_NET) npm run admin-revoke -w @cortex/infra -- --email "$(EMAIL)"
+
+test-e2e:
+	$(RUN) e2e npx playwright test -c apps/web/playwright.config.ts
