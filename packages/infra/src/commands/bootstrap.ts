@@ -14,7 +14,12 @@ const bootstrapEnvSchema = z.object({
   APPWRITE_PROJECT_ID: z.string().regex(/^[a-z0-9-]{1,36}$/),
   CORTEX_CONSOLE_EMAIL: z.email(),
   CORTEX_CONSOLE_PASSWORD: z.string().min(12).optional(),
+  GITHUB_OAUTH_CLIENT_ID: z.string().min(1).optional(),
+  GITHUB_OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
 });
+
+const sessionDurationSeconds = 604_800;
+const sessionLimit = 10;
 
 interface KeyList {
   keys: Array<{ $id: string; name: string }>;
@@ -87,6 +92,38 @@ async function main(): Promise<void> {
       }),
   );
   log(`web platform: ${platform}`);
+
+  await api.request("set session duration", {
+    method: "PATCH",
+    path: "/project/policies/session-duration",
+    project: projectId,
+    body: { duration: sessionDurationSeconds },
+  });
+  await api.request("set session limit", {
+    method: "PATCH",
+    path: "/project/policies/session-limit",
+    project: projectId,
+    body: { total: sessionLimit },
+  });
+  await api.request("enable password dictionary", {
+    method: "PATCH",
+    path: "/project/policies/password-dictionary",
+    project: projectId,
+    body: { enabled: true },
+  });
+  log(`auth policies: session ${sessionDurationSeconds} s, limit ${sessionLimit}, password dictionary on`);
+
+  if (env.GITHUB_OAUTH_CLIENT_ID !== undefined && env.GITHUB_OAUTH_CLIENT_SECRET !== undefined) {
+    await api.request("configure GitHub provider", {
+      method: "PATCH",
+      path: "/project/oauth2/github",
+      project: projectId,
+      body: { clientId: env.GITHUB_OAUTH_CLIENT_ID, clientSecret: env.GITHUB_OAUTH_CLIENT_SECRET, enabled: true },
+    });
+    log("github provider: enabled");
+  } else {
+    log("github provider: skipped (no client id and secret)");
+  }
 
   const existing = await api.request<KeyList>("list keys", {
     method: "GET",
