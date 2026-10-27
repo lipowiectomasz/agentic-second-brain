@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./search-types": "./src/search-types.ts"
   },
   "dependencies": {
     "@cortex/access": "0.1.0",

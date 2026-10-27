@@ -8,7 +8,8 @@
     "./sector-colors": "./src/sector-colors.ts",
     "./slug": "./src/slug.ts",
     "./body-hash": "./src/body-hash.ts",
-    "./secrets": "./src/secrets.ts"
+    "./secrets": "./src/secrets.ts",
+    "./file-kind": "./src/file-kind.ts"
   },
   "dependencies": {
     "node-appwrite": "31.0.0",
