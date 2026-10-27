@@ -29,6 +29,7 @@ test("a member signs in, sees the profile and no admin area", async ({ page }) =
   await expect(page.getByRole("heading", { name: member.name })).toBeVisible();
   await expect(page.getByText(member.email)).toBeVisible();
   await expect(page.getByText("Spine: Reader")).toBeVisible();
+  await expect(page.getByText("E2E Knowledge: Reader")).toBeVisible();
   await expect(page.getByRole("link", { name: "Admin" })).toHaveCount(0);
 
   await page.goto("/admin");
