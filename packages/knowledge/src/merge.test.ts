@@ -40,3 +40,19 @@ describe("mergeThreeWay", () => {
     expect(mergeThreeWay("a\nb\n", "a\r\nb\r\n", "a\nb\nc\n").content).toBe("a\nb\nc\n");
   });
 });
+
+describe("mergeThreeWay performance", () => {
+  it("merges two 256 KB versions in under 200 ms", () => {
+    const lines = Array.from({ length: 6000 }, (_, index) => `line ${index} ${"x".repeat(30)}`);
+    const base = lines.join("\n");
+    const current = lines.map((line, index) => (index % 500 === 0 ? `${line} current` : line)).join("\n");
+    const incoming = lines.map((line, index) => (index % 500 === 250 ? `${line} incoming` : line)).join("\n");
+    expect(base.length).toBeGreaterThan(200_000);
+    const started = performance.now();
+    const result = mergeThreeWay(base, current, incoming);
+    expect(performance.now() - started).toBeLessThan(200);
+    expect(result.overlapped).toBe(false);
+    expect(result.content).toContain("line 0 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx current");
+    expect(result.content).toContain("line 250 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx incoming");
+  });
+});
