@@ -16,6 +16,7 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
+    "test:perf": "vitest run --project perf",
     "build": "npm run build --workspaces --if-present"
   },
   "devDependencies": {

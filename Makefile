@@ -11,7 +11,7 @@ RUN := HOST_UID=$(shell id -u) HOST_GID=$(shell id -g) CORTEX_ENV_FILE=$(ENV_FIL
 TOOLS := $(RUN) tools
 TOOLS_NET := $(RUN) tools-net
 
-.PHONY: reindex test-e2e admin-grant admin-revoke appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
+.PHONY: test-perf reindex test-e2e admin-grant admin-revoke appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
 
 appwrite-install:
 	test -f appwrite/.env || docker run --rm \
@@ -80,3 +80,6 @@ test-e2e:
 
 reindex:
 	$(TOOLS_NET) npm run reindex -w @cortex/infra
+
+test-perf:
+	$(TOOLS_NET) npm run test:perf

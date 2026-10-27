@@ -21,7 +21,7 @@ import { authorSlugOf, decideWrite } from "./lifecycle";
 import { mergeThreeWay } from "./merge";
 import { classifyPath, titleFromContent } from "./paths";
 import type { FileRow, SectorInfo } from "./store";
-import { KnowledgeStore, chunksCollectionId, fileVersionsTableId, filesTableId } from "./store";
+import { KnowledgeStore, chunksCollectionId, embeddingKey, fileVersionsTableId, filesTableId } from "./store";
 import type { DeleteInput, DeleteResult, IngestInput, IngestResult, ParsedIngestInput } from "./types";
 import { KnowledgeError, deleteInputSchema, ingestInputSchema, invalidInput } from "./types";
 
@@ -152,7 +152,7 @@ export async function ingestFile(deps: KnowledgeWriteDeps, caller: Caller, rawIn
     const title = titleFromContent(body, input.path);
     const chunks = chunkMarkdown(body, defaultChunkerOptions, title);
     if (chunks.length > maxChunksPerFile) throw new KnowledgeError({ code: "too_many_chunks", chunks: chunks.length, limit: maxChunksPerFile });
-    const vectors = await deps.embedder.embedDocuments(chunks.map((chunk) => ({ title, heading: chunk.heading, text: chunk.text })));
+    const vectors = await embedChunks(deps, store, existing, title, chunks);
 
     const fileId = existing?.id ?? deps.newId();
     const hash = sha256Hex(plan.stored);
@@ -217,6 +217,19 @@ export async function ingestFile(deps: KnowledgeWriteDeps, caller: Caller, rawIn
   throw new KnowledgeError({ code: "busy" });
 }
 
+async function embedChunks(deps: KnowledgeWriteDeps, store: KnowledgeStore, existing: FileRow | null, title: string, chunks: Array<{ heading: string; text: string }>): Promise<number[][]> {
+  const reusable = existing === null ? new Map<string, number[]>() : await store.chunkEmbeddings(existing.id, existing.hash, existing.title);
+  const missing = chunks.filter((chunk) => !reusable.has(embeddingKey(title, chunk.heading, chunk.text)));
+  const fresh = missing.length === 0 ? [] : await deps.embedder.embedDocuments(missing.map((chunk) => ({ title, heading: chunk.heading, text: chunk.text })));
+  const computed = new Map(missing.map((chunk, index) => [embeddingKey(title, chunk.heading, chunk.text), fresh[index]]));
+  return chunks.map((chunk) => {
+    const key = embeddingKey(title, chunk.heading, chunk.text);
+    const vector = reusable.get(key) ?? computed.get(key);
+    if (vector === undefined) throw new KnowledgeError({ code: "embedding_failed" });
+    return vector;
+  });
+}
+
 function emptyRow(id: string, sectorId: string, path: string, kind: FileKind, authorId: string): FileRow {
   return { id, sectorId, path, title: "", kind, hash: "", version: 0, size: 0, content: "", updatedBy: authorId, authorId, docId: null, status: null, supersedes: null, supersededBy: null, relatesTo: null, updatedAt: "" };
 }
@@ -237,23 +250,22 @@ async function writeChunks(store: KnowledgeStore, fileId: string, hash: string, 
   if (chunks.length === 0) return;
   const transaction = await withTimeout("vectorsDB.createTransaction", () => store.vectors.createTransaction({ ttl: 120 }));
   try {
-    for (const chunk of chunks) {
+    const operations = chunks.map((chunk) => {
       const embeddings = vectors[chunk.index];
       if (embeddings === undefined) throw new KnowledgeError({ code: "embedding_failed" });
-      await withTimeout("vectorsDB.createDocument staged", () =>
-        store.vectors.createDocument({
-          databaseId: store.ids.vectors,
-          collectionId: chunksCollectionId,
-          documentId: ID.unique(),
-          data: {
-            embeddings,
-            metadata: { ...fields, fileId, heading: chunk.heading, chunkIndex: String(chunk.index), text: chunk.text, fileHash: hash },
-          },
-          permissions,
-          transactionId: transaction.$id,
-        }),
-      );
-    }
+      return {
+        action: "create",
+        databaseId: store.ids.vectors,
+        collectionId: chunksCollectionId,
+        documentId: ID.unique(),
+        data: {
+          embeddings,
+          metadata: { ...fields, fileId, heading: chunk.heading, chunkIndex: String(chunk.index), text: chunk.text, fileHash: hash },
+          $permissions: permissions,
+        },
+      };
+    });
+    await withTimeout("vectorsDB.createOperations", () => store.vectors.createOperations({ transactionId: transaction.$id, operations }));
     await withTimeout("vectorsDB.commit", () => store.vectors.updateTransaction({ transactionId: transaction.$id, commit: true }));
   } catch (error) {
     await store.vectors.updateTransaction({ transactionId: transaction.$id, rollback: true }).catch(() => undefined);

@@ -12,6 +12,17 @@ export default defineConfig({
       },
       {
         test: {
+          name: "perf",
+          include: ["packages/*/test/**/*.perf.test.ts"],
+          globalSetup: ["packages/infra/test/global-setup.ts"],
+          environment: "node",
+          testTimeout: 120000,
+          hookTimeout: 180000,
+          fileParallelism: false,
+        },
+      },
+      {
+        test: {
           name: "integration",
           include: ["packages/*/test/**/*.integration.test.ts"],
           globalSetup: ["packages/infra/test/global-setup.ts"],
