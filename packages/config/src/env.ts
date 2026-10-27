@@ -11,6 +11,9 @@ export const serverEnvSchema = z.object({
   CORTEX_DATABASE_NAMESPACE: namespace,
   CORTEX_TEST_DATABASE_NAMESPACE: z.string().regex(/^[a-z][a-z0-9_]{2,30}_test$/),
   CORTEX_MAX_PENDING_PROPOSALS: z.coerce.number().int().min(1).max(1000).default(20),
+  APP_URL: z.url(),
+  GITHUB_OAUTH_CLIENT_ID: z.string().min(1).optional(),
+  GITHUB_OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
