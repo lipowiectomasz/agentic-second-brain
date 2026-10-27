@@ -11,7 +11,7 @@ RUN := HOST_UID=$(shell id -u) HOST_GID=$(shell id -g) CORTEX_ENV_FILE=$(ENV_FIL
 TOOLS := $(RUN) tools
 TOOLS_NET := $(RUN) tools-net
 
-.PHONY: test-e2e admin-grant admin-revoke appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
+.PHONY: reindex test-e2e admin-grant admin-revoke appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
 
 appwrite-install:
 	test -f appwrite/.env || docker run --rm \
@@ -77,3 +77,6 @@ admin-revoke:
 
 test-e2e:
 	$(RUN) e2e npx playwright test -c apps/web/playwright.config.ts
+
+reindex:
+	$(TOOLS_NET) npm run reindex -w @cortex/infra
