@@ -1,0 +1,73 @@
+name: cortex
+
+services:
+  tools:
+    build:
+      context: .
+      dockerfile: docker/tools.Dockerfile
+    image: cortex-tools:local
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /workspace
+    env_file: ${CORTEX_ENV_FILE:-.env}
+    environment:
+      HOME: /home/tools
+      npm_config_cache: /home/tools/.npm
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+      - type: volume
+        source: tools-home
+        target: /home/tools
+    profiles: ["tools"]
+
+  tools-net:
+    image: cortex-tools:local
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /workspace
+    env_file: ${CORTEX_ENV_FILE:-.env}
+    environment:
+      HOME: /home/tools
+      npm_config_cache: /home/tools/.npm
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+      - type: volume
+        source: tools-home
+        target: /home/tools
+    networks:
+      - appwrite
+    profiles: ["tools"]
+
+  web:
+    image: cortex-tools:local
+    build:
+      context: .
+      dockerfile: docker/tools.Dockerfile
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /workspace
+    env_file: ${CORTEX_ENV_FILE:-.env}
+    environment:
+      HOME: /home/tools
+      npm_config_cache: /home/tools/.npm
+    command: ["npm", "run", "dev", "-w", "@cortex/web", "--", "--hostname", "0.0.0.0", "--port", "3000"]
+    ports:
+      - "127.0.0.1:13020:3000"
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+      - type: volume
+        source: tools-home
+        target: /home/tools
+    networks:
+      - appwrite
+
+volumes:
+  tools-home:
+
+networks:
+  appwrite:
+    external: true
+    name: appwrite
