@@ -6,12 +6,13 @@ services:
       context: .
       dockerfile: docker/tools.Dockerfile
     image: cortex-tools:local
-    user: "${UID:-1000}:${GID:-1000}"
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     working_dir: /workspace
     env_file: ${CORTEX_ENV_FILE:-.env}
     environment:
       HOME: /home/tools
       npm_config_cache: /home/tools/.npm
+      CORTEX_ENV_FILE: ${CORTEX_ENV_FILE:-.env}
     volumes:
       - type: bind
         source: .
@@ -23,12 +24,13 @@ services:
 
   tools-net:
     image: cortex-tools:local
-    user: "${UID:-1000}:${GID:-1000}"
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     working_dir: /workspace
     env_file: ${CORTEX_ENV_FILE:-.env}
     environment:
       HOME: /home/tools
       npm_config_cache: /home/tools/.npm
+      CORTEX_ENV_FILE: ${CORTEX_ENV_FILE:-.env}
     volumes:
       - type: bind
         source: .
@@ -45,7 +47,7 @@ services:
     build:
       context: .
       dockerfile: docker/tools.Dockerfile
-    user: "${UID:-1000}:${GID:-1000}"
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     working_dir: /workspace
     env_file: ${CORTEX_ENV_FILE:-.env}
     environment:
