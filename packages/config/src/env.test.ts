@@ -8,6 +8,7 @@ const validEnv = {
   APPWRITE_API_KEY: "standard_0123456789abcdef0123456789abcdef",
   CORTEX_DATABASE_NAMESPACE: "cortex",
   CORTEX_TEST_DATABASE_NAMESPACE: "cortex_test",
+  APP_URL: "http://localhost:13020",
 };
 
 describe("loadServerEnv", () => {

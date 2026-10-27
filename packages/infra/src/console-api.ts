@@ -8,7 +8,7 @@ export class ConsoleApiError extends Error {
 }
 
 interface RequestOptions {
-  method: "GET" | "POST" | "DELETE";
+  method: "GET" | "POST" | "PATCH" | "DELETE";
   path: string;
   body?: unknown;
   project?: string;

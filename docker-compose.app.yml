@@ -66,6 +66,25 @@ services:
     networks:
       - appwrite
 
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.64.1-noble
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    working_dir: /workspace
+    env_file: ${CORTEX_ENV_FILE:-.env}
+    environment:
+      HOME: /home/tools
+      E2E_BASE_URL: http://web:3000
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+      - type: volume
+        source: tools-home
+        target: /home/tools
+    networks:
+      - appwrite
+    profiles: ["tools"]
+
 volumes:
   tools-home:
 

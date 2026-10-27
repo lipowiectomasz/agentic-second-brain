@@ -10,7 +10,9 @@
     "bootstrap": "tsx src/commands/bootstrap.ts",
     "setup": "tsx src/commands/setup.ts",
     "doctor": "tsx src/commands/doctor.ts",
-    "test-reset": "tsx src/commands/test-reset.ts"
+    "test-reset": "tsx src/commands/test-reset.ts",
+    "admin-grant": "tsx src/commands/admin-label.ts grant",
+    "admin-revoke": "tsx src/commands/admin-label.ts revoke"
   },
   "dependencies": {
     "@cortex/config": "0.1.0",
