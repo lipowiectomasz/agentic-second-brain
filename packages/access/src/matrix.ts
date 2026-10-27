@@ -1,5 +1,5 @@
 import type { Models } from "node-appwrite";
-import { Query } from "node-appwrite";
+import { AppwriteException, Query } from "node-appwrite";
 import type { SectorRole } from "@cortex/core";
 import { adminLabel } from "@cortex/core";
 import type { Caller } from "@cortex/server-kit";
@@ -43,7 +43,10 @@ export async function getAccessMatrix(caller: Caller, deps: AccessDeps): Promise
         .map(async (sector) => {
           const list = await withTimeout("teams.listMemberships", () =>
             deps.admin.teams.listMemberships({ teamId: sector.teamId, queries: [Query.limit(100)] }),
-          );
+          ).catch((error: unknown) => {
+            if (error instanceof AppwriteException && error.code === 404) return { memberships: [] };
+            throw error;
+          });
           return [sector.teamId, list.memberships.map((membership) => ({ userId: membership.userId, roles: membership.roles }))] as const;
         }),
     ),
