@@ -1,12 +1,11 @@
 import "server-only";
-import type { SectorRole } from "@cortex/core";
+import { TablesDB } from "node-appwrite";
+import type { SectorView } from "@cortex/access";
+import { listMySectors as listMySectorsForCaller } from "@cortex/access";
+import type { Caller } from "@cortex/server-kit";
+import { getAccessDeps } from "@/lib/access-deps";
+import { getSessionClient } from "@/lib/auth/session-client";
 
-export interface MySector {
-  id: string;
-  name: string;
-  role: SectorRole;
-}
-
-export async function listMySectors(): Promise<MySector[]> {
-  return [];
+export async function listMySectors(caller: Caller): Promise<SectorView[]> {
+  return listMySectorsForCaller(caller, new TablesDB(await getSessionClient()), getAccessDeps());
 }

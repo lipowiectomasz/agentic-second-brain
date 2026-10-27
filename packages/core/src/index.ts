@@ -5,3 +5,8 @@ export type { SectorKind, SectorRole } from "./sector-role";
 export { sectorTeamId, spineSectorId } from "./team-id";
 export { adminLabel, sectorReadPermissions, sectorWritePermissions } from "./permissions";
 export type { SectorAccessScope } from "./permissions";
+export { sectorColorHex, sectorColorToken, sectorColorTokens, sectorColors } from "./sector-colors";
+export type { SectorColorToken } from "./sector-colors";
+export { auditActions } from "./audit-action";
+export type { AuditAction, AuditEvent } from "./audit-action";
+export { deriveSlug } from "./slug";

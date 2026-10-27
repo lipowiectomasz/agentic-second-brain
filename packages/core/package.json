@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./sector-colors": "./src/sector-colors.ts",
+    "./slug": "./src/slug.ts"
   },
   "dependencies": {
     "node-appwrite": "31.0.0"

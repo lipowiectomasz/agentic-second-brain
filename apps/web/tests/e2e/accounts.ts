@@ -10,6 +10,7 @@ export interface E2eAccount {
 
 export interface E2eAccounts {
   member: E2eAccount;
+  maintainer: E2eAccount;
   admin: E2eAccount;
 }
 

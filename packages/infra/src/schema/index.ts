@@ -1,3 +1,4 @@
+import { accessRequestsTable } from "./access-requests";
 import { chunksCollection } from "./chunks";
 import { docReservationsTable, fileVersionsTable, filesTable } from "./files";
 import { healthFunction } from "./functions";
@@ -6,7 +7,7 @@ import type { SchemaSpec } from "./types";
 
 export const schema: SchemaSpec = {
   collections: [chunksCollection],
-  tables: [sectorsTable, filesTable, fileVersionsTable, docReservationsTable],
+  tables: [sectorsTable, filesTable, fileVersionsTable, docReservationsTable, accessRequestsTable],
   functions: [healthFunction],
 };
 
