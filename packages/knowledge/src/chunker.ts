@@ -70,6 +70,10 @@ function mergeShortSections(sections: Section[], minChars: number): Section[] {
     if (pending !== null) {
       if (section.level >= pending.level || pending.level === 0) {
         section.lines = [...pending.lines, "", ...section.lines];
+        if (pending.level !== 0 && pending.level < section.level) {
+          section.heading = pending.heading;
+          section.level = pending.level;
+        }
       } else {
         result.push(pending);
       }

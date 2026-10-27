@@ -25,12 +25,17 @@ describe("chunkMarkdown", () => {
     expect(chunkMarkdown(body, small).map((chunk) => chunk.heading)).toEqual(["Real"]);
   });
 
-  it("merges a short section into the next one", () => {
+  it("merges a short section into the next one and keeps the parent heading", () => {
     const body = `# A\nshort\n## B\n${paragraph("b", 120)}\n`;
     const chunks = chunkMarkdown(body, small);
     expect(chunks).toHaveLength(1);
     expect(chunks[0]?.text).toContain("short");
-    expect(chunks[0]?.heading).toBe("A > B");
+    expect(chunks[0]?.heading).toBe("A");
+  });
+
+  it("keeps the next heading when a short sibling merges into it", () => {
+    const body = `## A\nshort\n## B\n${paragraph("b", 120)}\n`;
+    expect(chunkMarkdown(body, small)[0]?.heading).toBe("B");
   });
 
   it("splits a long section at blank lines with overlap of the last paragraph", () => {
