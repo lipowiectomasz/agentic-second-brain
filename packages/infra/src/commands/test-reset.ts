@@ -5,6 +5,7 @@ import { findOrNull } from "../appwrite-errors";
 import { runSetup } from "./setup";
 
 export const testIdentityPrefix = "test-";
+export const e2eIdentityPrefix = "e2e-";
 
 export async function runTestReset(log: (line: string) => void): Promise<number> {
   const env = loadServerEnv(process.env);
@@ -18,7 +19,9 @@ export async function runTestReset(log: (line: string) => void): Promise<number>
   log(`deleted databases ${ids.tables}, ${ids.vectors}`);
 
   const users = new Users(client);
-  const testUsers = await withTimeout("users.list", () => users.list({ queries: [Query.startsWith("name", testIdentityPrefix), Query.limit(100)] }));
+  const testUsers = await withTimeout("users.list", () =>
+    users.list({ queries: [Query.or([Query.startsWith("name", testIdentityPrefix), Query.startsWith("name", e2eIdentityPrefix)]), Query.limit(100)] }),
+  );
   for (const user of testUsers.users) {
     await withTimeout("users.delete", () => users.delete({ userId: user.$id }));
   }

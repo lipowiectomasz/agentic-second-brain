@@ -10,7 +10,7 @@ import { accountsFile } from "./accounts";
 async function createAccount(users: Users, role: string, labels: string[]): Promise<E2eAccount> {
   const email = `test-e2e-${role}-${Date.now()}@example.com`;
   const password = `${randomBytes(18).toString("base64url")}Aa1!`;
-  const name = `test-e2e-${role}`;
+  const name = `e2e-${role}`;
   const user = await users.create({ userId: ID.unique(), email, password, name });
   if (labels.length > 0) await users.updateLabels({ userId: user.$id, labels });
   return { userId: user.$id, email, password, name };
@@ -20,6 +20,7 @@ export default async function globalSetup(): Promise<void> {
   const users = new Users(createAdminClient(loadServerEnv(process.env)));
   const accounts: E2eAccounts = {
     member: await createAccount(users, "member", []),
+    maintainer: await createAccount(users, "maintainer", []),
     admin: await createAccount(users, "admin", ["admin"]),
   };
   await mkdir(path.dirname(accountsFile), { recursive: true });

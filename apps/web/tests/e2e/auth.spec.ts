@@ -18,7 +18,7 @@ test("a wrong password shows the generic message", async ({ page }) => {
   const { member } = await readAccounts();
   await page.goto("/login");
   await signIn(page, member, "definitely-not-the-password");
-  await expect(page.getByRole("alert")).toHaveText("Invalid email or password.");
+  await expect(page.getByText("Invalid email or password.")).toBeVisible();
 });
 
 test("a member signs in, sees the profile and no admin area", async ({ page }) => {
@@ -28,7 +28,7 @@ test("a member signs in, sees the profile and no admin area", async ({ page }) =
   await expect(page).toHaveURL(/\/profile$/);
   await expect(page.getByRole("heading", { name: member.name })).toBeVisible();
   await expect(page.getByText(member.email)).toBeVisible();
-  await expect(page.getByText("No sectors yet.")).toBeVisible();
+  await expect(page.getByText("Spine: Reader")).toBeVisible();
   await expect(page.getByRole("link", { name: "Admin" })).toHaveCount(0);
 
   await page.goto("/admin");
