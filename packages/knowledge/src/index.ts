@@ -1,0 +1,17 @@
+export { chunkMarkdown, defaultChunkerOptions } from "./chunker";
+export type { Chunk, ChunkerOptions } from "./chunker";
+export type { AccessReader, KnowledgeWriteDeps } from "./deps";
+export { docNumber, formatDocId, reserveDocId, setDocumentStatus } from "./documents";
+export { createAppwriteEmbedder, defaultEmbedderOptions, documentText, queryText } from "./embedder";
+export type { Embedder, EmbedderOptions, EmbeddingItem, PrefixMode } from "./embedder";
+export { bodyOf, renderManagedFrontmatter } from "./frontmatter";
+export type { ManagedRowFields } from "./frontmatter";
+export { applySpineChange, deleteFile, ingestFile, reindexFile } from "./ingest";
+export { authorSlugOf, decideTransition, decideWrite, statusTransitions } from "./lifecycle";
+export { mergeThreeWay } from "./merge";
+export { classifyPath, titleFromContent } from "./paths";
+export { KnowledgeStore, chunksCollectionId, fileVersionsTableId, filesTableId, toFileRowFromRaw } from "./store";
+export type { FileRow, SectorInfo } from "./store";
+export * from "./types";
+export { cosineSimilarity, meanVector, normalize, similarityFromDistance } from "./vectors";
+export { isChunkVisible } from "./visibility";
