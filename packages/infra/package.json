@@ -1,0 +1,24 @@
+{
+  "name": "@cortex/infra",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "bootstrap": "tsx src/commands/bootstrap.ts",
+    "setup": "tsx src/commands/setup.ts",
+    "doctor": "tsx src/commands/doctor.ts",
+    "test-reset": "tsx src/commands/test-reset.ts"
+  },
+  "dependencies": {
+    "@cortex/config": "0.1.0",
+    "@cortex/core": "0.1.0",
+    "@cortex/server-kit": "0.1.0",
+    "esbuild": "0.28.2",
+    "node-appwrite": "31.0.0",
+    "tsx": "4.23.15",
+    "zod": "4.6.7"
+  }
+}
