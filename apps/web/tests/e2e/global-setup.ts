@@ -6,6 +6,7 @@ import { loadServerEnv } from "@cortex/config";
 import { createAdminClient } from "@cortex/server-kit";
 import type { E2eAccount, E2eAccounts } from "./accounts";
 import { accountsFile } from "./accounts";
+import { seedKnowledge } from "./knowledge-fixture";
 
 async function createAccount(users: Users, role: string, labels: string[]): Promise<E2eAccount> {
   const email = `test-e2e-${role}-${Date.now()}@example.com`;
@@ -23,6 +24,7 @@ export default async function globalSetup(): Promise<void> {
     maintainer: await createAccount(users, "maintainer", []),
     admin: await createAccount(users, "admin", ["admin"]),
   };
+  await seedKnowledge([accounts.member.userId, accounts.admin.userId]);
   await mkdir(path.dirname(accountsFile), { recursive: true });
   await writeFile(accountsFile, JSON.stringify(accounts), { mode: 0o600 });
 }

@@ -9,10 +9,12 @@ export const instant = false;
 async function AuthenticatedShell({ children }: { children: React.ReactNode }) {
   const path = (await headers()).get("x-cortex-path") ?? "/";
   const caller = await requireCaller(path);
-  const reviewsRequests = (await listMySectors(caller)).some((sector) => sector.myRole === "maintainer");
+  const mySectors = await listMySectors(caller);
+  const reviewsRequests = mySectors.some((sector) => sector.myRole === "maintainer");
+  const sectors = mySectors.map((sector) => ({ id: sector.id, name: sector.name, color: sector.color }));
   return (
     <>
-      <AppNav caller={caller} reviewsRequests={reviewsRequests} />
+      <AppNav caller={caller} reviewsRequests={reviewsRequests} sectors={sectors} />
       {children}
     </>
   );

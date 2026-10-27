@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./search-types": "./src/search-types.ts"
   },
   "dependencies": {
     "@cortex/access": "0.1.0",
@@ -12,6 +13,7 @@
     "@cortex/config": "0.1.0",
     "@cortex/core": "0.1.0",
     "@cortex/server-kit": "0.1.0",
+    "github-slugger": "2.0.0",
     "node-appwrite": "31.0.0",
     "node-diff3": "3.2.1",
     "zod": "4.6.7"

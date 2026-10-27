@@ -76,6 +76,7 @@ export type KnowledgeErrorCode =
   | "not_author"
   | "sector_not_found"
   | "doc_not_found"
+  | "not_found"
   | "immutable"
   | "doc_id_taken"
   | "invalid_transition"
@@ -95,7 +96,7 @@ export type KnowledgeErrorDetails =
   | { code: "too_large"; bytes: number; limit: number }
   | { code: "too_many_chunks"; chunks: number; limit: number }
   | { code: "invalid_input"; issues: string[] }
-  | { code: "not_author" | "sector_not_found" | "doc_not_found" | "embedding_failed" | "storage_failed" | "busy" };
+  | { code: "not_author" | "sector_not_found" | "doc_not_found" | "not_found" | "embedding_failed" | "storage_failed" | "busy" };
 
 export class KnowledgeError extends Error {
   constructor(readonly details: KnowledgeErrorDetails) {
@@ -118,6 +119,7 @@ export const knowledgeHttpStatus: Record<KnowledgeErrorCode, number> = {
   not_author: 403,
   sector_not_found: 404,
   doc_not_found: 404,
+  not_found: 404,
   immutable: 409,
   doc_id_taken: 409,
   invalid_transition: 409,
