@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+appwrite/.env
+docker-compose.override.yml
+node_modules/
+.next/
+dist/
+coverage/
+*.tsbuildinfo
+docs/documentation/
