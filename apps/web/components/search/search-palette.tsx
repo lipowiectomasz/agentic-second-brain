@@ -82,6 +82,9 @@ export function SearchPalette({ sectors }: { sectors: PaletteSector[] }) {
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
       setActiveIndex((index) => Math.max(index - 1, 0));
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      dialog.current?.close();
     } else if (event.key === "Enter") {
       const result = results[activeIndex];
       if (result !== undefined) {
