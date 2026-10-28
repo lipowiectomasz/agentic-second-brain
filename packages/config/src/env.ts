@@ -13,6 +13,7 @@ export const serverEnvSchema = z.object({
   CORTEX_MAX_PENDING_PROPOSALS: z.coerce.number().int().min(1).max(1000).default(20),
   APP_URL: z.url(),
   CORTEX_EMBEDDING_PREFIX_MODE: z.enum(["none", "nomic"]).default("none"),
+  CORTEX_FUNCTION_API_ENDPOINT: z.url().optional(),
   GITHUB_OAUTH_CLIENT_ID: z.string().min(1).optional(),
   GITHUB_OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
 });

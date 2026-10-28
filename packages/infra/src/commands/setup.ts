@@ -9,12 +9,13 @@ import { readCurrentState } from "../current-state";
 import { planChanges } from "../plan";
 import { describeOperation } from "../plan";
 import { repositoryRoot } from "../repository-paths";
-import { schema } from "../schema";
+import { schemaFor } from "../schema";
 
 export async function runSetup(namespace: string, log: (line: string) => void): Promise<number> {
   const env = loadServerEnv(process.env);
   const client = createAdminClient(env);
   const ids = databaseIds(namespace);
+  const schema = schemaFor(namespace, env.CORTEX_FUNCTION_API_ENDPOINT === undefined ? {} : { functionApiEndpoint: env.CORTEX_FUNCTION_API_ENDPOINT });
   const outDir = await mkdtemp(path.join(tmpdir(), "cortex-bundles-"));
   try {
     const bundles: Record<string, string> = {};

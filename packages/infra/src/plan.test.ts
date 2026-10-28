@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { CurrentState, FunctionState } from "./plan";
 import { emptyState, planChanges } from "./plan";
-import { schema } from "./schema";
+import { schemaFor } from "./schema";
+
+const schema = schemaFor("cortex");
 import type { SchemaSpec } from "./schema/types";
 
-const bundles = { health: "a".repeat(64) };
+const bundles: Record<string, string> = { health: "a".repeat(64), "cli-gateway": "b".repeat(64) };
 
 function convergedState(desired: SchemaSpec): CurrentState {
   const tables: CurrentState["tables"] = {};
@@ -16,7 +18,7 @@ function convergedState(desired: SchemaSpec): CurrentState {
   }
   const functions: Record<string, FunctionState> = {};
   for (const fn of desired.functions) {
-    functions[fn.id] = { ...fn, bundleHash: bundles.health };
+    functions[fn.id] = { ...fn, bundleHash: bundles[fn.id] ?? "" };
   }
   return {
     vectorsDatabase: true,
@@ -41,7 +43,12 @@ describe("planChanges", () => {
     expect(kinds.slice(0, 4)).toEqual(["createDatabase", "createDatabase", "createCollection", "createVectorIndex"]);
     expect(kinds.indexOf("createTable")).toBeLessThan(kinds.indexOf("createColumn"));
     expect(kinds.lastIndexOf("createColumn")).toBeLessThan(kinds.indexOf("ensureSpine"));
-    expect(kinds.slice(-2)).toEqual(["ensureFunction", "deployFunction"]);
+    for (const fn of schema.functions) {
+      const ensure = operations.findIndex((operation) => operation.kind === "ensureFunction" && operation.spec.id === fn.id);
+      const deploy = operations.findIndex((operation) => operation.kind === "deployFunction" && operation.spec.id === fn.id);
+      expect(ensure).toBeGreaterThan(kinds.lastIndexOf("ensureSpine"));
+      expect(ensure).toBeLessThan(deploy);
+    }
   });
 
   it("plans nothing on a converged project", () => {

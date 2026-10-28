@@ -1,0 +1,6 @@
+services:
+  traefik:
+    networks:
+      runtimes:
+        aliases:
+          - appwrite-api

@@ -1,0 +1,17 @@
+{
+  "name": "@cortex/tokens",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./appwrite": "./src/appwrite/index.ts"
+  },
+  "dependencies": {
+    "@cortex/audit": "0.1.0",
+    "@cortex/core": "0.1.0",
+    "@cortex/gateway-contract": "0.1.0",
+    "@cortex/server-kit": "0.1.0",
+    "node-appwrite": "31.0.0"
+  }
+}

@@ -24,6 +24,9 @@ export function UserMenu({ name }: { name: string }) {
         <Link href="/profile" className="nav-link">
           Profile
         </Link>
+        <Link href="/settings/tokens" className="nav-link">
+          Access tokens
+        </Link>
         <ThemeToggle />
         <hr className="rule" />
         <form action={signOut}>

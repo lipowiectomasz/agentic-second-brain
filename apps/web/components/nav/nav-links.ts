@@ -22,5 +22,6 @@ export function adminNavItems(proposals: ProposalsNav | null): NavItem[] {
     { href: "/admin/sectors", label: "Sectors" },
     { href: "/admin/access", label: "Access" },
     ...(proposals === null ? [] : [{ href: "/admin/proposals", label: "Proposals", count: proposals.pendingForAdmin }]),
+    { href: "/admin/tokens", label: "Tokens" },
   ];
 }
