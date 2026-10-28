@@ -2,7 +2,6 @@
 
 :root {
   color-scheme: light;
-  color-scheme: light;
   --background: #f4efe4;
   --surface: #fbf8f1;
   --surface-raised: #fffdf8;
@@ -63,7 +62,6 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  color-scheme: dark;
   --background: #141821;
   --surface: #1b202b;
   --surface-raised: #232937;
@@ -104,7 +102,6 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-  color-scheme: dark;
   --background: #141821;
   --surface: #1b202b;
   --surface-raised: #232937;
