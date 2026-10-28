@@ -1,0 +1,12 @@
+export { TokenInvalidError, TokenLimitReachedError, TokenNotFoundError, TokenRateLimitedError, TokenSessionError } from "./errors";
+export { ipPolicy, isLocked, prefixPolicy, registerFailure } from "./failure-window";
+export type { FailurePolicy, FailureState } from "./failure-window";
+export type { FailureRepository, NewTokenRecord, SessionPort, TokenOwner, TokenRepository, UserDirectory } from "./repositories";
+export { TokenAuthenticator, jwtDurationSeconds } from "./token-authenticator";
+export type { AuthenticatedToken, TokenAuthenticatorDeps } from "./token-authenticator";
+export { generateToken, hashToken, parseToken, verifySecret } from "./token-format";
+export type { GeneratedToken } from "./token-format";
+export { isActive, shouldTouchLastUsed, toTokenView, tokenStatus } from "./token-record";
+export type { TokenRecord, TokenStatus, TokenView } from "./token-record";
+export { TokenService, maxActiveTokens } from "./token-service";
+export type { CreateTokenInput, TokenServiceDeps } from "./token-service";
