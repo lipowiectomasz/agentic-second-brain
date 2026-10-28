@@ -76,6 +76,13 @@ services:
 
 Update `APPWRITE_ENDPOINT` and `NEXT_PUBLIC_APPWRITE_ENDPOINT` in `.env` to the chosen port.
 
+## Functions on a local stack
+
+Appwrite runtimes cannot reach `localhost`. `make platform-up` adds traefik to the `runtimes`
+network under the alias `appwrite-api` (`appwrite/docker-compose.runtimes.yml`), and `make setup`
+passes `CORTEX_FUNCTION_API_ENDPOINT` (default in `.env.example`: `http://appwrite-api/v1`) to the
+CLI gateway function. On a server with a public domain, leave the variable unset.
+
 ## Manual bootstrap
 
 If `make bootstrap` exits with code 2, the console API of your server version differs. Create the
