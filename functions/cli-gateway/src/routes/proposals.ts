@@ -1,11 +1,10 @@
 import { TablesDB } from "node-appwrite";
-import { noopAuditSink } from "@cortex/audit";
 import { routes } from "@cortex/gateway-contract";
 import { ProposalError, submitProposal } from "@cortex/proposals";
 import type { GatewayContext } from "../context";
 import { GatewayError } from "../map-error";
 import { route } from "../router";
-import { writeDeps } from "./deps";
+import { auditSink, writeDeps } from "./deps";
 
 const maxPending = Number.parseInt(process.env.CORTEX_MAX_PENDING_PROPOSALS ?? "20", 10) || 20;
 
@@ -19,7 +18,7 @@ const messages: Record<string, [ "bad_request" | "secret_detected" | "payload_to
 
 export async function proposalsSubmit(ctx: GatewayContext, input: Parameters<typeof submitProposal>[1]): Promise<{ proposalId: string }> {
   try {
-    return await submitProposal(ctx.caller, input, { tables: new TablesDB(ctx.adminClient), databaseId: ctx.ids.tables, audit: noopAuditSink, knowledge: writeDeps(ctx), maxPending, now: () => new Date() });
+    return await submitProposal(ctx.caller, input, { tables: new TablesDB(ctx.adminClient), databaseId: ctx.ids.tables, audit: auditSink(ctx), knowledge: writeDeps(ctx), maxPending, now: () => new Date() });
   } catch (error) {
     if (error instanceof ProposalError && messages[error.code] !== undefined) {
       const [code, message] = messages[error.code] as [ "bad_request" | "secret_detected" | "payload_too_large" | "forbidden", string];

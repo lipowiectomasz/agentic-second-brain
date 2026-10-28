@@ -1,9 +1,9 @@
 import "server-only";
 import { TablesDB, Teams, Users } from "node-appwrite";
 import type { AccessDeps } from "@cortex/access";
-import { noopAuditSink } from "@cortex/audit";
 import { databaseIds } from "@cortex/config";
 import { createAdminClient } from "@cortex/server-kit";
+import { getAuditSink } from "@/lib/audit-sink";
 import { serverEnv } from "@/lib/env";
 
 export function getAccessDeps(): AccessDeps {
@@ -12,7 +12,7 @@ export function getAccessDeps(): AccessDeps {
   return {
     admin: { tables: new TablesDB(admin), teams: new Teams(admin), users: new Users(admin) },
     ids: { tables: databaseIds(env.CORTEX_DATABASE_NAMESPACE).tables },
-    audit: noopAuditSink,
+    audit: getAuditSink(),
     includeTestIdentities: env.CORTEX_DATABASE_NAMESPACE.endsWith("_test"),
   };
 }

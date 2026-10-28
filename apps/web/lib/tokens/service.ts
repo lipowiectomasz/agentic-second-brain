@@ -1,11 +1,11 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
 import { TablesDB, Users } from "node-appwrite";
-import { noopAuditSink } from "@cortex/audit";
 import { databaseIds } from "@cortex/config";
 import { createAdminClient } from "@cortex/server-kit";
 import { TokenService } from "@cortex/tokens";
 import { AppwriteSessionPort, AppwriteTokenRepository, AppwriteUserDirectory } from "@cortex/tokens/appwrite";
+import { getAuditSink } from "@/lib/audit-sink";
 import { serverEnv } from "@/lib/env";
 
 export function getTokenService(): TokenService {
@@ -16,7 +16,7 @@ export function getTokenService(): TokenService {
     tokens: new AppwriteTokenRepository(new TablesDB(admin), databaseIds(env.CORTEX_DATABASE_NAMESPACE).tables),
     sessions: new AppwriteSessionPort(users),
     users: new AppwriteUserDirectory(users),
-    audit: noopAuditSink,
+    audit: getAuditSink(),
     now: () => new Date(),
     random: randomBytes,
   });
