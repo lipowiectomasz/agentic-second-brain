@@ -30,7 +30,7 @@ const rules: Array<{ id: Exclude<SecretRuleId, "generic-assignment">; pattern: R
   { id: "google-api-key", pattern: /\bAIza[0-9A-Za-z_-]{35}\b/g },
 ];
 
-const genericAssignment = /(?:api[_-]?key|secret|passw(?:or)?d|token|auth)["']?\s*[:=]\s*["']?([^\s"'<>]{16,})/gi;
+const genericAssignment = /(?:api[_-]?key|secret|passw(?:or)?d|token|auth)[A-Za-z0-9_-]{0,24}["']?\s*[:=]\s*["']?([^\s"'<>]{16,})/gi;
 
 export function maskSecret(value: string): string {
   if (value.length <= 8) return "*".repeat(value.length);

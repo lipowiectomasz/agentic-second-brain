@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/cortex"
+mkdir -p "$CONFIG"
+chmod 700 "$CONFIG"
+ROOT="${CORTEX_ROOT:-$PWD}"
+TTY=""
+if [ -t 0 ]; then TTY="-t"; fi
+exec docker run --rm -i $TTY \
+  --network host \
+  -u "$(id -u):$(id -g)" \
+  -e CORTEX_ROOT=/work \
+  -e NO_COLOR="${NO_COLOR:-}" \
+  -v "$CONFIG:/home/cortex/.config/cortex" \
+  -v "$ROOT:/work" \
+  -w "/work" \
+  cortex-cli "$@"
