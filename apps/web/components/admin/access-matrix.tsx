@@ -1,40 +1,39 @@
 import type { AccessMatrix } from "@cortex/access";
-import { SectorSwatch } from "@/components/sectors/sector-swatch";
+import { SectorBadge } from "@/components/sectors/sector-badge";
 import { OrgAdminToggle } from "./org-admin-toggle";
 import { RoleCell } from "./role-cell";
 
 export function AccessMatrixTable({ matrix }: { matrix: AccessMatrix }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full text-left text-sm">
-        <thead className="sticky top-0 bg-white">
+    <div className="tbl-box mt-3" style={{ maxHeight: "70vh" }}>
+      <table className="tbl">
+        <thead>
           <tr>
-            <th className="sticky left-0 bg-white py-2 pr-4">Member</th>
-            <th className="px-2">Org admin</th>
-            <th className="px-2">Spine</th>
+            <th className="sticky-col">Member</th>
+            <th>Org admin</th>
+            <th>Spine</th>
             {matrix.sectors.map((sector) => (
-              <th key={sector.id} className="px-2">
-                <span className="inline-flex items-center gap-1">
-                  <SectorSwatch color={sector.color} />
-                  {sector.name}
-                </span>
+              <th key={sector.id}>
+                <SectorBadge name={sector.name} color={sector.color} />
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
           {matrix.rows.map((row) => (
-            <tr key={row.userId} className="border-t">
-              <th scope="row" className="sticky left-0 bg-white py-2 pr-4 font-normal">
+            <tr key={row.userId}>
+              <th scope="row" className="sticky-col" style={{ textTransform: "none", letterSpacing: 0, font: "inherit", color: "inherit", borderBottom: "1px solid var(--border)", position: "sticky" }}>
                 <span className="block font-medium">{row.name}</span>
-                <span className="block text-xs">{row.email}</span>
+                <span className="mono xsmall muted block">{row.email}</span>
               </th>
-              <td className="px-2">
+              <td>
                 <OrgAdminToggle userId={row.userId} userName={row.name} isAdmin={row.isOrgAdmin} />
               </td>
-              <td className="px-2">Read</td>
+              <td>
+                <span className="badge badge-muted">Read</span>
+              </td>
               {matrix.sectors.map((sector) => (
-                <td key={sector.id} className="px-2">
+                <td key={sector.id}>
                   <RoleCell userId={row.userId} userName={row.name} sectorId={sector.id} sectorName={sector.name} role={row.roles[sector.id] ?? null} />
                 </td>
               ))}

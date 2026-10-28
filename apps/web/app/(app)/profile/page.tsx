@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { isOrgAdmin } from "@cortex/server-kit";
+import { SectorBadge } from "@/components/sectors/sector-badge";
 import { requireCaller } from "@/lib/auth/caller";
 import { listMySectors } from "@/lib/sectors";
 
@@ -8,20 +9,25 @@ async function ProfileDetails() {
   const sectors = await listMySectors(caller);
   return (
     <>
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">{caller.name}</h1>
-        <p>{caller.email}</p>
-        {isOrgAdmin(caller) && <p className="w-fit rounded border px-2 py-0.5 text-sm">Organisation admin</p>}
+      <header className="flex flex-col gap-2">
+        <p className="folio">Profile</p>
+        <h1 className="h-display">{caller.name}</h1>
+        <p className="mono small muted">{caller.email}</p>
+        {isOrgAdmin(caller) && <span className="badge badge-admin self-start">Organisation admin</span>}
       </header>
-      <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-semibold">Sectors</h2>
+      <hr className="rule-double" />
+      <section className="flex flex-col gap-3">
+        <h2 className="h-section">Sectors</h2>
         {sectors.length === 0 ? (
-          <p>No sectors yet.</p>
+          <p className="muted">No sectors yet.</p>
         ) : (
-          <ul>
+          <ul className="flex flex-col gap-2">
             {sectors.map((sector) => (
-              <li key={sector.id}>
-                {sector.name}: {sector.myRole === "maintainer" ? "Maintainer" : "Reader"}
+              <li key={sector.id} className="flex items-center gap-2">
+                <SectorBadge name={sector.name} color={sector.color} />
+                <span>
+                  {sector.name}: {sector.myRole === "maintainer" ? "Maintainer" : "Reader"}
+                </span>
               </li>
             ))}
           </ul>
@@ -33,8 +39,8 @@ async function ProfileDetails() {
 
 export default function ProfilePage() {
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10">
-      <Suspense fallback={<p>Loading...</p>}>
+    <main className="page">
+      <Suspense fallback={<div className="sk h-40 w-full" />}>
         <ProfileDetails />
       </Suspense>
     </main>

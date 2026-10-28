@@ -1,3 +1,8 @@
 export default function AppLoading() {
-  return <p className="px-4 py-10">Loading...</p>;
+  return (
+    <div className="page" aria-label="Loading">
+      <div className="sk h-10 w-72" />
+      <div className="sk h-40 w-full" />
+    </div>
+  );
 }

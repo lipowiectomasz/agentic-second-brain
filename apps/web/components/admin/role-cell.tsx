@@ -24,19 +24,22 @@ export function RoleCell({ userId, sectorId, sectorName, userName, role }: { use
 
   return (
     <div className="flex flex-col gap-1">
-      <select
-        aria-label={`${userName} in ${sectorName}`}
-        value={optimistic}
-        disabled={pending}
-        onChange={(event) => change(event.target.value as CellValue)}
-        className="rounded border px-2 py-1 text-sm"
-      >
-        <option value="none">None</option>
-        <option value="reader">Reader</option>
-        <option value="maintainer">Maintainer</option>
-      </select>
+      <span className="select-wrap select-sm">
+        <select
+          aria-label={`${userName} in ${sectorName}`}
+          value={optimistic}
+          disabled={pending}
+          onChange={(event) => change(event.target.value as CellValue)}
+          className="input"
+          style={{ minWidth: 140 }}
+        >
+          <option value="none">None</option>
+          <option value="reader">Reader</option>
+          <option value="maintainer">Maintainer</option>
+        </select>
+      </span>
       {error !== null && (
-        <span role="alert" className="text-xs text-red-700">
+        <span role="alert" className="err">
           {error}
         </span>
       )}
