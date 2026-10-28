@@ -1,16 +1,20 @@
 import { rm } from "node:fs/promises";
-import { Users } from "node-appwrite";
-import { loadServerEnv } from "@cortex/config";
+import { Query, TablesDB, Users } from "node-appwrite";
+import { databaseIds, loadServerEnv } from "@cortex/config";
 import { createAdminClient } from "@cortex/server-kit";
 import { accountsFile, readAccounts } from "./accounts";
 import { removeKnowledge } from "./knowledge-fixture";
 
 export default async function globalTeardown(): Promise<void> {
+  const env = loadServerEnv(process.env);
+  const admin = createAdminClient(env);
   const accounts = await readAccounts();
-  const users = new Users(createAdminClient(loadServerEnv(process.env)));
-  for (const account of [accounts.member, accounts.maintainer, accounts.admin]) {
-    await users.delete({ userId: account.userId });
-  }
+  const userIds = [accounts.member, accounts.maintainer, accounts.admin].map((account) => account.userId);
+  await new TablesDB(admin)
+    .deleteRows({ databaseId: databaseIds(env.CORTEX_DATABASE_NAMESPACE).tables, tableId: "cli_tokens", queries: [Query.equal("userId", userIds)] })
+    .catch(() => undefined);
+  const users = new Users(admin);
+  for (const userId of userIds) await users.delete({ userId });
   await removeKnowledge();
   await rm(accountsFile, { force: true });
 }
