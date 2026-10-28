@@ -9,7 +9,8 @@
     "./slug": "./src/slug.ts",
     "./body-hash": "./src/body-hash.ts",
     "./secrets": "./src/secrets.ts",
-    "./file-kind": "./src/file-kind.ts"
+    "./file-kind": "./src/file-kind.ts",
+    "./document-status": "./src/document-status.ts"
   },
   "dependencies": {
     "node-appwrite": "31.0.0",
