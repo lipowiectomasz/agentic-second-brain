@@ -120,6 +120,21 @@ Keep the brain in sync with Claude Code hooks in the sync root's `.claude/settin
 With `--quiet` the CLI prints only warnings, never prompts and does not fail the hook for content
 reasons.
 
+## Coding assistant (MCP)
+
+`cortex mcp` is a read-only Model Context Protocol server over stdio. The assistant gets three
+tools - `search_brain`, `related` and `read_file` - and acts with your permissions: removing you
+from a sector removes it from the assistant's answers on the next call, and nothing can be
+written. Sign in once with `cortex login`, then:
+
+```bash
+claude mcp add cortex -- docker run --rm -i --network host -u "$(id -u):$(id -g)" \
+  -v "$HOME/.config/cortex:/home/cortex/.config/cortex:ro" cortex-cli mcp
+```
+
+The credentials directory is mounted read-only and the MCP configuration holds no token. Other
+MCP clients use the same command with `"command": "docker"` and the arguments above.
+
 ## Functions on a local stack
 
 Appwrite runtimes cannot reach `localhost`. `make platform-up` adds traefik to the `runtimes`
