@@ -1,7 +1,7 @@
 export { callGateway } from "./client";
 export type { GatewayResult, GatewayTarget } from "./client";
-export { errorBodySchema, gatewayRequestSchema, okBody, tokenPattern, tokenScopeSchema } from "./envelope";
-export type { ErrorBody, GatewayRequest, TokenScope } from "./envelope";
+export { createTokenInputSchema, errorBodySchema, gatewayRequestSchema, okBody, tokenPattern, tokenScopeSchema } from "./envelope";
+export type { CreateTokenFormInput, ErrorBody, GatewayRequest, TokenScope } from "./envelope";
 export { errorCodeSchema, statusForCode } from "./errors";
 export type { ErrorCode } from "./errors";
 export { routes, whoamiDataSchema } from "./routes";

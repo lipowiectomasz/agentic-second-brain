@@ -27,3 +27,11 @@ export type ErrorBody = z.infer<typeof errorBodySchema>;
 export function okBody<T extends z.ZodType>(data: T) {
   return z.object({ ok: z.literal(true), data });
 }
+
+export const createTokenInputSchema = z.object({
+  name: z.string().trim().min(1).max(64),
+  scope: tokenScopeSchema,
+  expiresInDays: z.coerce.number().pipe(z.union([z.literal(7), z.literal(30), z.literal(90)])),
+});
+
+export type CreateTokenFormInput = z.infer<typeof createTokenInputSchema>;

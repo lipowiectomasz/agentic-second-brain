@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["web"],
   cacheComponents: true,
   partialPrefetching: true,
-  transpilePackages: ["@cortex/access", "@cortex/audit", "@cortex/config", "@cortex/core", "@cortex/knowledge", "@cortex/server-kit"],
+  transpilePackages: ["@cortex/access", "@cortex/audit", "@cortex/config", "@cortex/core", "@cortex/gateway-contract", "@cortex/knowledge", "@cortex/server-kit", "@cortex/tokens"],
   turbopack: {
     rules: {
       "*.css": {
