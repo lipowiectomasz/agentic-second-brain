@@ -50,6 +50,14 @@ describe("snippetOf", () => {
     expect(snippetOf("a  b\n\n c")).toBe("a b c");
   });
 
+  it("leaves out markdown heading lines shown separately as the heading", () => {
+    expect(snippetOf("# Rolling back\n\nRedeploy the previous tag.\n## Notes\nKeep the snapshot.")).toBe("Redeploy the previous tag. Keep the snapshot.");
+  });
+
+  it("keeps the heading text when the chunk has nothing else", () => {
+    expect(snippetOf("## Rollback")).toBe("Rollback");
+  });
+
   it("cuts long text at a word boundary", () => {
     const snippet = snippetOf(`${"word ".repeat(60)}end`);
     expect(snippet.length).toBeLessThanOrEqual(203);
