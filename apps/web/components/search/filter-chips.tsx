@@ -1,6 +1,7 @@
 "use client";
 
 import { fileKinds } from "@cortex/core/file-kind";
+import { sectorStyle } from "@/components/sectors/sector-badge";
 
 export interface PaletteSector {
   id: string;
@@ -18,36 +19,52 @@ function toggle(values: string[], value: string): string[] {
   return values.includes(value) ? values.filter((entry) => entry !== value) : [...values, value];
 }
 
+function Check() {
+  return (
+    <svg className="check" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="m3 8.5 3 3 7-7" />
+    </svg>
+  );
+}
+
 export function FilterChips({ sectors, filters, onChange }: { sectors: PaletteSector[]; filters: Filters; onChange: (filters: Filters) => void }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 text-xs">
-      {sectors.map((sector) => (
-        <button
-          key={sector.id}
-          type="button"
-          aria-pressed={filters.sectorIds.includes(sector.id)}
-          onClick={() => onChange({ ...filters, sectorIds: toggle(filters.sectorIds, sector.id) })}
-          className="flex items-center gap-1 rounded-full border px-2 py-0.5 aria-pressed:bg-neutral-900 aria-pressed:text-white"
-        >
-          <span aria-hidden className="inline-block size-2 rounded-full" style={{ backgroundColor: sector.color }} />
-          {sector.name}
-        </button>
-      ))}
-      {fileKinds.map((kind) => (
-        <button
-          key={kind}
-          type="button"
-          aria-pressed={filters.kinds.includes(kind)}
-          onClick={() => onChange({ ...filters, kinds: toggle(filters.kinds, kind) })}
-          className="rounded-full border px-2 py-0.5 aria-pressed:bg-neutral-900 aria-pressed:text-white"
-        >
-          {kind}
-        </button>
-      ))}
-      <label className="ml-auto flex items-center gap-1">
-        <input type="checkbox" checked={filters.includeSuperseded} onChange={(event) => onChange({ ...filters, includeSuperseded: event.target.checked })} />
-        Include superseded
-      </label>
+    <div className="flex flex-col gap-2">
+      <div className="chip-row" role="group" aria-label="Filter by sector">
+        <span className="folio w-14 flex-none self-center">Sector</span>
+        {sectors.map((sector) => (
+          <button
+            key={sector.id}
+            type="button"
+            className="chip"
+            aria-pressed={filters.sectorIds.includes(sector.id)}
+            onClick={() => onChange({ ...filters, sectorIds: toggle(filters.sectorIds, sector.id) })}
+          >
+            <Check />
+            <span aria-hidden className="dot" style={sectorStyle(sector.color)} />
+            {sector.name}
+          </button>
+        ))}
+      </div>
+      <div className="chip-row" role="group" aria-label="Filter by kind">
+        <span className="folio w-14 flex-none self-center">Kind</span>
+        {fileKinds.map((kind) => (
+          <button
+            key={kind}
+            type="button"
+            className="chip mono"
+            aria-pressed={filters.kinds.includes(kind)}
+            onClick={() => onChange({ ...filters, kinds: toggle(filters.kinds, kind) })}
+          >
+            <Check />
+            {kind}
+          </button>
+        ))}
+        <label className="small muted ml-auto flex flex-none items-center gap-2 pl-2">
+          <input type="checkbox" checked={filters.includeSuperseded} onChange={(event) => onChange({ ...filters, includeSuperseded: event.target.checked })} />
+          Include superseded
+        </label>
+      </div>
     </div>
   );
 }

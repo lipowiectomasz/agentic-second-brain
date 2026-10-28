@@ -1,13 +1,17 @@
 import { Suspense } from "react";
+import { Wordmark } from "@/components/brand/wordmark";
 import { PlatformStatusPanel } from "@/components/platform-status";
 
-export default function HomePage() {
+export default function StatusPage() {
   return (
-    <main className="mx-auto flex max-w-xl flex-col gap-6 px-4 py-16">
-      <h1 className="text-3xl font-semibold">Cortex</h1>
-      <Suspense fallback={<p>Checking the platform...</p>}>
-        <PlatformStatusPanel />
-      </Suspense>
+    <main className="dot-grid min-h-screen">
+      <div className="page max-w-xl">
+        <Wordmark />
+        <p className="folio">Platform status</p>
+        <Suspense fallback={<p className="small muted">Checking the platform...</p>}>
+          <PlatformStatusPanel />
+        </Suspense>
+      </div>
     </main>
   );
 }

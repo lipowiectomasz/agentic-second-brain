@@ -4,17 +4,19 @@ export async function PlatformStatusPanel() {
   const status = await getPlatformStatus();
   if (!status.ok) {
     return (
-      <section role="alert" className="rounded-md border border-red-700 p-4">
-        <h2 className="font-semibold">Platform check failed: {status.failedCheck}</h2>
-        <p>{status.message}</p>
+      <section role="alert" className="card flex flex-col gap-2 border-danger p-5">
+        <span className="badge badge-danger self-start">Unavailable</span>
+        <h2 className="h-card">Platform check failed: {status.failedCheck}</h2>
+        <p className="small muted">{status.message}</p>
       </section>
     );
   }
   return (
-    <section className="rounded-md border p-4">
-      <h2 className="font-semibold">Connected to Appwrite {status.version}</h2>
-      <p>
-        Project <code>{status.project}</code>
+    <section className="card flex flex-col gap-2 p-5">
+      <span className="badge badge-success self-start">Connected</span>
+      <h2 className="h-card">Connected to Appwrite {status.version}</h2>
+      <p className="small muted">
+        Project <code className="mono">{status.project}</code>
       </p>
     </section>
   );

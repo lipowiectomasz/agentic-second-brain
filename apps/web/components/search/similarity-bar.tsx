@@ -1,11 +1,11 @@
 export function SimilarityBar({ similarity }: { similarity: number }) {
   const percent = Math.round(Math.min(1, Math.max(0, similarity)) * 100);
   return (
-    <span className="flex items-center gap-2 text-xs" aria-label={`${percent}% match`}>
-      <span aria-hidden className="h-1.5 w-16 overflow-hidden rounded bg-neutral-200">
-        <span className="block h-full bg-orange-700" style={{ width: `${percent}%` }} />
+    <span className="sim" aria-label={`${percent}% match`}>
+      <span aria-hidden className="sim-track">
+        <span className="sim-rest" style={{ width: `${100 - percent}%` }} />
       </span>
-      {percent}% match
+      <span className="sim-label">{percent}% match</span>
     </span>
   );
 }
