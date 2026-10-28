@@ -3,7 +3,7 @@ import { databaseIds, loadServerEnv } from "@cortex/config";
 import { createAdminClient } from "@cortex/server-kit";
 import { readCurrentState } from "../src/current-state";
 import { planChanges } from "../src/plan";
-import { schema } from "../src/schema";
+import { schemaFor } from "../src/schema";
 import { runSetup } from "../src/commands/setup";
 
 const env = loadServerEnv(process.env);
@@ -17,6 +17,7 @@ describe("schema provisioning", () => {
   });
 
   it("reads back every declared table, column and index", async () => {
+    const schema = schemaFor(namespace, env.CORTEX_FUNCTION_API_ENDPOINT === undefined ? {} : { functionApiEndpoint: env.CORTEX_FUNCTION_API_ENDPOINT });
     const state = await readCurrentState(createAdminClient(env), databaseIds(namespace), schema);
     expect(state.spine).toBe(true);
     expect(state.collections.chunks?.dimension).toBe(768);

@@ -25,7 +25,7 @@ appwrite-install:
 	printf '_APP_MQTT_PORT="%s"\n_APP_MQTT_WSS_PORT="%s"\n' '$(APPWRITE_MQTT_PORT)' '$(APPWRITE_MQTT_WSS_PORT)' >> appwrite/.env
 
 platform-up:
-	docker compose -f appwrite/docker-compose.yml --env-file appwrite/.env --project-directory appwrite --profile embedding up -d
+	docker compose -f appwrite/docker-compose.yml -f appwrite/docker-compose.runtimes.yml --env-file appwrite/.env --project-directory appwrite --profile embedding up -d
 
 up:
 	HOST_UID=$(shell id -u) HOST_GID=$(shell id -g) docker compose --profile embedding up -d
