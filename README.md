@@ -76,6 +76,50 @@ services:
 
 Update `APPWRITE_ENDPOINT` and `NEXT_PUBLIC_APPWRITE_ENDPOINT` in `.env` to the chosen port.
 
+## Command line
+
+The CLI runs from a container image; Node is not needed on the host.
+
+```bash
+make cli-image
+export PATH="$PWD/bin:$PATH"
+cortex login --endpoint http://localhost:18080/v1 --project cortex
+cortex pull
+```
+
+Create a personal token under **Account > Access tokens** in the web app and paste it when asked
+(or pipe it with `--token-stdin`). The token is stored in `~/.config/cortex/credentials.json`
+with mode `0600`; it is never read from arguments or environment variables.
+
+| Command | What it does |
+|---|---|
+| `cortex pull` | writes the spine at the sync root and each sector you can read under `brains/<sector>/` |
+| `cortex status` | shows what pull and push would change, files in quarantine and read-only edits |
+| `cortex push [--strict] [--delete]` | sends changed files; a file with a secret moves to `.cortex/quarantine/` and the rest is sent |
+| `cortex sync` | pull, push, pull |
+| `cortex search "<question>"` | meaning-based search with your permissions |
+| `cortex reserve spec --create <slug>` | reserves the next document ID and writes the file from a template |
+| `cortex status <DOC-ID> approved` | changes a document status |
+
+The server decides per document kind: approved specs and backlog tasks are read-only (create a
+superseding document), findings are written once, living documents are merged with full history.
+Nothing ever asks you to resolve a conflict. Exit codes: 0 ok, 2 usage, 3 secret found, 5 the
+token or role cannot write, 8 sign in again, 10 server unreachable, 11 rejections with `--strict`.
+
+Keep the brain in sync with Claude Code hooks in the sync root's `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [{ "hooks": [{ "type": "command", "command": "CORTEX_ROOT=\"$CLAUDE_PROJECT_DIR\" cortex pull --quiet", "timeout": 30 }] }],
+    "Stop": [{ "hooks": [{ "type": "command", "command": "CORTEX_ROOT=\"$CLAUDE_PROJECT_DIR\" cortex push --quiet", "timeout": 60 }] }]
+  }
+}
+```
+
+With `--quiet` the CLI prints only warnings, never prompts and does not fail the hook for content
+reasons.
+
 ## Functions on a local stack
 
 Appwrite runtimes cannot reach `localhost`. `make platform-up` adds traefik to the `runtimes`
