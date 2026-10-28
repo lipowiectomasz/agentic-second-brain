@@ -51,6 +51,10 @@ export class TokenAuthenticator {
     return { record, jwt, caller: toCaller({ $id: record.userId, name: owner.name, email: owner.email, labels: owner.labels }, "token", record.scope) };
   }
 
+  forgetJwt(recordId: string): void {
+    this.deps.jwtCache.delete(recordId);
+  }
+
   private async ensureUnlocked(key: string, now: Date): Promise<void> {
     const state = isLocked(await this.deps.failures.get(key), now);
     if (state.locked) throw new TokenRateLimitedError(state.retryAfterSeconds);
