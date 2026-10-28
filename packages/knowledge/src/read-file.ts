@@ -6,7 +6,7 @@ import type { KnowledgeReadDeps } from "./search";
 import { mapReadError } from "./search";
 import type { FileView, ManifestEntry, ManifestPage } from "./search-types";
 import type { FileRow } from "./store";
-import { filesTableId, toFileRowFromRaw } from "./store";
+import { filesTableId, sectorsTableId, toFileRowFromRaw } from "./store";
 import { KnowledgeError, invalidInput } from "./types";
 
 type ReadDeps = Pick<KnowledgeReadDeps, "scoped" | "ids">;
@@ -47,19 +47,30 @@ async function loadRow(tables: TablesDB, deps: ReadDeps, input: { fileId: string
   return toFileRowFromRaw(row);
 }
 
+const unknownSector = { name: "Unknown sector", color: "#857d6f" };
+
+async function fileIdOfDoc(tables: TablesDB, deps: ReadDeps, sectorId: string, docId: string | null): Promise<string | null> {
+  if (docId === null) return null;
+  const list = await withTimeout("tablesDB.listRows doc file", () =>
+    tables.listRows({ databaseId: deps.ids.tables, tableId: filesTableId, queries: [Query.equal("sectorId", [sectorId]), Query.equal("docId", [docId]), Query.select(["$id"]), Query.limit(1)] }),
+  );
+  return list.rows[0]?.$id ?? null;
+}
+
+async function sectorOf(tables: TablesDB, deps: ReadDeps, sectorId: string): Promise<{ name: string; color: string }> {
+  try {
+    const row = await withTimeout("tablesDB.getRow sector", () => tables.getRow<Models.Row & { name: string; color: string }>({ databaseId: deps.ids.tables, tableId: sectorsTableId, rowId: sectorId }));
+    return { name: row.name, color: row.color };
+  } catch {
+    return unknownSector;
+  }
+}
+
 export async function readFile(deps: ReadDeps, input: { fileId: string } | { sectorId: string; path: string }): Promise<FileView> {
   const tables = new TablesDB(deps.scoped);
   try {
     const row = await loadRow(tables, deps, input);
-    let supersededByFileId: string | null = null;
-    if (row.supersededBy !== null) {
-      const replacement = await tables.listRows({
-        databaseId: deps.ids.tables,
-        tableId: filesTableId,
-        queries: [Query.equal("sectorId", [row.sectorId]), Query.equal("docId", [row.supersededBy]), Query.select(["$id"]), Query.limit(1)],
-      });
-      supersededByFileId = replacement.rows[0]?.$id ?? null;
-    }
+    const [supersededByFileId, supersedesFileId, sector] = await Promise.all([fileIdOfDoc(tables, deps, row.sectorId, row.supersededBy), fileIdOfDoc(tables, deps, row.sectorId, row.supersedes), sectorOf(tables, deps, row.sectorId)]);
     return {
       fileId: row.id,
       sectorId: row.sectorId,
@@ -75,7 +86,9 @@ export async function readFile(deps: ReadDeps, input: { fileId: string } | { sec
       supersedes: row.supersedes,
       supersededBy: row.supersededBy,
       supersededByFileId,
+      supersedesFileId,
       relatesTo: row.relatesTo,
+      sector,
     };
   } catch (error) {
     throw mapReadError(error);

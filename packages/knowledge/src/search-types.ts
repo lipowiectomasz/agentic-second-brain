@@ -50,7 +50,16 @@ export interface FileView {
   supersedes: string | null;
   supersededBy: string | null;
   supersededByFileId: string | null;
+  supersedesFileId: string | null;
   relatesTo: string | null;
+  sector: { name: string; color: string };
+}
+
+export interface FindingLink {
+  fileId: string;
+  title: string;
+  path: string;
+  updatedAt: string;
 }
 
 export interface ManifestEntry {

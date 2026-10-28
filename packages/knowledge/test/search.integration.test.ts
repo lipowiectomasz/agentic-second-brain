@@ -5,7 +5,7 @@ import { sectorReadPermissions } from "@cortex/core";
 import type { Caller } from "@cortex/server-kit";
 import { createSessionClient, toCaller } from "@cortex/server-kit";
 import type { KnowledgeReadDeps } from "../src";
-import { KnowledgeStore, createAppwriteEmbedder, createQueryEmbeddingCache, ingestFile, readFile, related, search, setDocumentStatus } from "../src";
+import { KnowledgeStore, createAppwriteEmbedder, createQueryEmbeddingCache, ingestFile, readFile, related, relatedFindings, search, setDocumentStatus } from "../src";
 import { admin, env, ids, stamp, writeDeps } from "./helpers";
 
 const deps = writeDeps();
@@ -116,5 +116,23 @@ describe("semantic search", () => {
     expect(view.supersededBy).toBe("SPEC-002");
     expect(view.supersededByFileId).not.toBeNull();
     expect(view.content).toContain("superseded_by: SPEC-002");
+  });
+
+  it("links a superseding spec to its predecessor, its sector and its findings", async () => {
+    const newer = await readFile(readA, { sectorId: sectors.a, path: "specs/SPEC-002-deploy.md" });
+    const older = await readFile(readA, { sectorId: sectors.a, path: "specs/SPEC-001-deploy.md" });
+    expect(newer).toMatchObject({ supersedes: "SPEC-001", supersedesFileId: older.fileId, sector: { name: "Sector A", color: "#1d6f70" } });
+    for (const [path, content] of [
+      ["docs/findings/FINDING-001-canary.md", "# Canary needs two instances\n\nA canary on one instance hides errors.\n"],
+      ["docs/findings/FINDING-002-rollback.md", "# Rollback takes four minutes\n\nThe automatic rollback waits for health checks.\n"],
+    ] as const) {
+      await ingestFile(deps, writer, { sectorId: sectors.a, path, content, baseVersion: null, baseHash: null, declared: { relatesTo: "SPEC-002" } });
+    }
+    const findings = await relatedFindings(readA, { sectorId: sectors.a, docId: "SPEC-002" });
+    expect(findings.map((finding) => finding.title).sort()).toEqual(["Canary needs two instances", "Rollback takes four minutes"]);
+    expect(findings.every((finding) => finding.path.startsWith("docs/findings/") && finding.updatedAt !== "")).toBe(true);
+    expect(await relatedFindings(readA, { sectorId: sectors.a, docId: "SPEC-001" })).toEqual([]);
+    expect(await relatedFindings(readB, { sectorId: sectors.a, docId: "SPEC-002" })).toEqual([]);
+    expect(await relatedFindings(readA, { sectorId: sectors.a, docId: "not an id" })).toEqual([]);
   });
 });
