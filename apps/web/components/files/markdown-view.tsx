@@ -2,9 +2,9 @@ import Markdown from "react-markdown";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 
-export function MarkdownView({ body }: { body: string }) {
+export function MarkdownView({ body, dimmed = false }: { body: string; dimmed?: boolean }) {
   return (
-    <article className="prose">
+    <article className={dimmed ? "prose superseded-body" : "prose"}>
       <Markdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeSlug]}
