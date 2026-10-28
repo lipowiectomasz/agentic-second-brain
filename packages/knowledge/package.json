@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./search-types": "./src/search-types.ts"
+    "./search-types": "./src/search-types.ts",
+    "./frontmatter": "./src/frontmatter.ts"
   },
   "dependencies": {
     "@cortex/access": "0.1.0",
