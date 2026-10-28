@@ -15,7 +15,7 @@ export async function runSetup(namespace: string, log: (line: string) => void): 
   const env = loadServerEnv(process.env);
   const client = createAdminClient(env);
   const ids = databaseIds(namespace);
-  const schema = schemaFor(namespace, env.CORTEX_FUNCTION_API_ENDPOINT === undefined ? {} : { functionApiEndpoint: env.CORTEX_FUNCTION_API_ENDPOINT });
+  const schema = schemaFor(namespace, { maxPendingProposals: env.CORTEX_MAX_PENDING_PROPOSALS, ...(env.CORTEX_FUNCTION_API_ENDPOINT === undefined ? {} : { functionApiEndpoint: env.CORTEX_FUNCTION_API_ENDPOINT }) });
   const outDir = await mkdtemp(path.join(tmpdir(), "cortex-bundles-"));
   try {
     const bundles: Record<string, string> = {};

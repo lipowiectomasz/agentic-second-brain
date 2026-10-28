@@ -120,6 +120,22 @@ export const syncRoutes = {
     input: z.object({ sectorId: sectorIdSchema, docId: docIdSchema, status: z.enum(["draft", "approved", "in_progress", "implemented", "deprecated"]) }).strict(),
     output: okBody(z.object({ docId: z.string(), status: z.enum(documentStatuses), superseded: z.string().nullable() })),
   },
+  proposalsSubmit: {
+    path: "/v1/proposals/submit",
+    access: "write",
+    input: z
+      .object({
+        kind: z.enum(["standard", "procedure"]),
+        targetPath: z.string().min(4).max(512),
+        baseVersion: z.number().int().min(1).nullable(),
+        title: z.string().trim().min(1).max(200),
+        rationale: z.string().trim().min(1).max(4000),
+        content: z.string().min(1).max(262144),
+        source: z.object({ sectorId: sectorIdSchema, path: z.string().max(512) }).nullable(),
+      })
+      .strict(),
+    output: okBody(z.object({ proposalId: z.string() })),
+  },
   related: {
     path: "/v1/related",
     access: "read",

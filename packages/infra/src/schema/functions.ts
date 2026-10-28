@@ -13,7 +13,7 @@ export const healthFunction: FunctionSpec = {
   variables: {},
 };
 
-export function gatewayFunction(namespace: string, apiEndpoint?: string): FunctionSpec {
+export function gatewayFunction(namespace: string, apiEndpoint?: string, maxPendingProposals?: number): FunctionSpec {
   return {
     id: gatewayFunctionId(namespace),
     name: `CLI gateway (${namespace})`,
@@ -23,6 +23,6 @@ export function gatewayFunction(namespace: string, apiEndpoint?: string): Functi
     execute: ["any"],
     timeout: 30,
     logging: false,
-    variables: { CORTEX_DATABASE_NAMESPACE: namespace, ...(apiEndpoint === undefined ? {} : { CORTEX_API_ENDPOINT: apiEndpoint }) },
+    variables: { CORTEX_DATABASE_NAMESPACE: namespace, ...(apiEndpoint === undefined ? {} : { CORTEX_API_ENDPOINT: apiEndpoint }), ...(maxPendingProposals === undefined ? {} : { CORTEX_MAX_PENDING_PROPOSALS: String(maxPendingProposals) }) },
   };
 }

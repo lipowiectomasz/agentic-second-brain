@@ -17,7 +17,7 @@ describe("schema provisioning", () => {
   });
 
   it("reads back every declared table, column and index", async () => {
-    const schema = schemaFor(namespace, env.CORTEX_FUNCTION_API_ENDPOINT === undefined ? {} : { functionApiEndpoint: env.CORTEX_FUNCTION_API_ENDPOINT });
+    const schema = schemaFor(namespace, { maxPendingProposals: env.CORTEX_MAX_PENDING_PROPOSALS, ...(env.CORTEX_FUNCTION_API_ENDPOINT === undefined ? {} : { functionApiEndpoint: env.CORTEX_FUNCTION_API_ENDPOINT }) });
     const state = await readCurrentState(createAdminClient(env), databaseIds(namespace), schema);
     expect(state.spine).toBe(true);
     expect(state.collections.chunks?.dimension).toBe(768);

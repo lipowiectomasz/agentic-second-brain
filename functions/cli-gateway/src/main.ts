@@ -8,6 +8,7 @@ import { createRouter } from "./router";
 import { docsReserveRoute, docsStatusRoute } from "./routes/docs";
 import { filesContentRoute, filesDeleteRoute, filesPushRoute } from "./routes/files";
 import { manifestRoute } from "./routes/manifest";
+import { proposalsSubmitRoute } from "./routes/proposals";
 import { relatedRoute, searchRoute } from "./routes/search";
 import { whoamiRoute } from "./routes/whoami";
 
@@ -17,7 +18,7 @@ interface AppwriteFunctionContext {
   error(message: string): void;
 }
 
-const lookup = createRouter([whoamiRoute, manifestRoute, filesContentRoute, filesPushRoute, filesDeleteRoute, docsReserveRoute, docsStatusRoute, searchRoute, relatedRoute]);
+const lookup = createRouter([whoamiRoute, manifestRoute, filesContentRoute, filesPushRoute, filesDeleteRoute, docsReserveRoute, docsStatusRoute, searchRoute, relatedRoute, proposalsSubmitRoute]);
 const jwtCache = new Map<string, { jwt: string; expiresAt: number }>();
 
 function required(name: string): string {
