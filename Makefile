@@ -11,18 +11,36 @@ RUN := HOST_UID=$(shell id -u) HOST_GID=$(shell id -g) CORTEX_ENV_FILE=$(ENV_FIL
 TOOLS := $(RUN) tools
 TOOLS_NET := $(RUN) tools-net
 
-.PHONY: cli-image test-perf reindex test-e2e admin-grant admin-revoke appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
+.DEFAULT_GOAL := help
+
+.PHONY: help cli-image test-perf reindex test-e2e admin-grant admin-revoke appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
+
+help:
+	@printf '%s\n' \
+	  'Cortex - every command runs in a container.' \
+	  '' \
+	  '  make appwrite-install      generate the self-hosted Appwrite stack (first time only)' \
+	  '  make platform-up           start Appwrite' \
+	  '  make install bootstrap setup doctor   prepare the project' \
+	  '  make up | down | app-up    start or stop everything, restart the web app' \
+	  '  make lint typecheck test build        quality gate' \
+	  '  make test-integration test-e2e       integration and browser tests' \
+	  '  make admin-grant EMAIL=<email>       give a user the organisation admin label' \
+	  '  make admin-revoke EMAIL=<email>      remove it' \
+	  '  make cli-image             build the cortex CLI image (bin/cortex)'
 
 appwrite-install:
-	test -f appwrite/.env || docker run --rm \
-	  --volume "$(CURDIR)/appwrite":/usr/src/code/appwrite:rw \
-	  --entrypoint=install appwrite/appwrite:$(APPWRITE_VERSION) \
-	  --http-port=$(APPWRITE_HTTP_PORT) --https-port=$(APPWRITE_HTTPS_PORT) \
-	  --interactive=N --no-start=true --database=postgresql --domain=localhost
-	docker run --rm --volume "$(CURDIR)/appwrite":/w alpine chown -R $(shell id -u):$(shell id -g) /w
-	sed -i 's/^_APP_VECTORSDB=.*/_APP_VECTORSDB="enabled"/' appwrite/.env
-	sed -i '/^_APP_MQTT_PORT=/d; /^_APP_MQTT_WSS_PORT=/d' appwrite/.env
-	printf '_APP_MQTT_PORT="%s"\n_APP_MQTT_WSS_PORT="%s"\n' '$(APPWRITE_MQTT_PORT)' '$(APPWRITE_MQTT_WSS_PORT)' >> appwrite/.env
+	@if [ -f appwrite/.env ]; then echo "appwrite/.env already exists; nothing to do."; else \
+	  docker run --rm \
+	    --volume "$(CURDIR)/appwrite":/usr/src/code/appwrite:rw \
+	    --entrypoint=install appwrite/appwrite:$(APPWRITE_VERSION) \
+	    --http-port=$(APPWRITE_HTTP_PORT) --https-port=$(APPWRITE_HTTPS_PORT) \
+	    --interactive=N --no-start=true --database=postgresql --domain=localhost && \
+	  docker run --rm --volume "$(CURDIR)/appwrite":/w alpine chown -R $(shell id -u):$(shell id -g) /w && \
+	  sed -i 's/^_APP_VECTORSDB=.*/_APP_VECTORSDB="enabled"/' appwrite/.env && \
+	  sed -i '/^_APP_MQTT_PORT=/d; /^_APP_MQTT_WSS_PORT=/d' appwrite/.env && \
+	  printf '_APP_MQTT_PORT="%s"\n_APP_MQTT_WSS_PORT="%s"\n' '$(APPWRITE_MQTT_PORT)' '$(APPWRITE_MQTT_WSS_PORT)' >> appwrite/.env; \
+	fi
 
 platform-up:
 	docker compose -f appwrite/docker-compose.yml -f appwrite/docker-compose.runtimes.yml --env-file appwrite/.env --project-directory appwrite --profile embedding up -d
@@ -70,9 +88,11 @@ shell:
 	$(TOOLS) bash
 
 admin-grant:
+	@test -n "$(EMAIL)" || { echo "Use: make admin-grant EMAIL=<email>"; exit 2; }
 	$(TOOLS_NET) npm run admin-grant -w @cortex/infra -- --email "$(EMAIL)"
 
 admin-revoke:
+	@test -n "$(EMAIL)" || { echo "Use: make admin-revoke EMAIL=<email>"; exit 2; }
 	$(TOOLS_NET) npm run admin-revoke -w @cortex/infra -- --email "$(EMAIL)"
 
 test-e2e:
