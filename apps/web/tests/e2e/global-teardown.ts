@@ -1,5 +1,5 @@
 import { rm } from "node:fs/promises";
-import { Query, TablesDB, Users, VectorsDB } from "node-appwrite";
+import { Query, TablesDB, Teams, Users, VectorsDB } from "node-appwrite";
 import { databaseIds, loadServerEnv } from "@cortex/config";
 import { createAdminClient } from "@cortex/server-kit";
 import { accountsFile, readAccounts } from "./accounts";
@@ -16,6 +16,12 @@ export default async function globalTeardown(): Promise<void> {
   const tables = new TablesDB(admin);
   const ids = databaseIds(env.CORTEX_DATABASE_NAMESPACE);
   await tables.deleteRows({ databaseId: ids.tables, tableId: "proposals", queries: [Query.equal("proposerId", userIds)] }).catch(() => undefined);
+  await tables.deleteRows({ databaseId: ids.tables, tableId: "audit_events", queries: [Query.equal("actorId", userIds)] }).catch(() => undefined);
+  const auditSectors = await tables.listRows({ databaseId: ids.tables, tableId: "sectors", queries: [Query.startsWith("slug", "e2e-audit-"), Query.limit(100)] }).catch(() => ({ rows: [] }));
+  for (const sector of auditSectors.rows) {
+    await tables.deleteRow({ databaseId: ids.tables, tableId: "sectors", rowId: sector.$id }).catch(() => undefined);
+    await new Teams(admin).delete({ teamId: `sector-${sector.$id}` }).catch(() => undefined);
+  }
   const spineFiles = await tables.listRows({ databaseId: ids.tables, tableId: "files", queries: [Query.equal("sectorId", ["spine"]), Query.startsWith("path", "standards/e2e-"), Query.select(["$id"]), Query.limit(100)] }).catch(() => ({ rows: [] }));
   for (const row of spineFiles.rows) {
     await new VectorsDB(admin).deleteDocuments({ databaseId: ids.vectors, collectionId: "chunks", queries: [Query.equal("metadata.fileId", [row.$id])] }).catch(() => undefined);

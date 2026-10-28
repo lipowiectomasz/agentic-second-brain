@@ -1,4 +1,5 @@
 import { accessRequestsTable } from "./access-requests";
+import { auditEventsTable } from "./audit-events";
 import { chunksCollection } from "./chunks";
 import { cliTokensTable, tokenFailuresTable } from "./cli-tokens";
 import { docReservationsTable, fileVersionsTable, filesTable } from "./files";
@@ -10,7 +11,7 @@ import type { SchemaSpec } from "./types";
 export function schemaFor(namespace: string, options: { functionApiEndpoint?: string; maxPendingProposals?: number } = {}): SchemaSpec {
   return {
     collections: [chunksCollection],
-    tables: [sectorsTable, filesTable, fileVersionsTable, docReservationsTable, accessRequestsTable, cliTokensTable, tokenFailuresTable, proposalsTable],
+    tables: [sectorsTable, filesTable, fileVersionsTable, docReservationsTable, accessRequestsTable, cliTokensTable, tokenFailuresTable, proposalsTable, auditEventsTable],
     functions: [healthFunction, gatewayFunction(namespace, options.functionApiEndpoint, options.maxPendingProposals)],
   };
 }
