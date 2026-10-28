@@ -20,6 +20,11 @@ describe("scanForSecrets", () => {
     expect(findings[0]?.line).toBe(3);
   });
 
+  it("finds secrets assigned to longer variable names", () => {
+    expect(scanForSecrets("AWS_SECRET_ACCESS_KEY=Zk3vQ9pLm2Xt7Wb4Rn8Yc1Hd6Fs0Ja5U").map((finding) => finding.ruleId)).toEqual(["generic-assignment"]);
+    expect(scanForSecrets("DATABASE_PASSWORD_PROD: 'Qw8eRt5yUi2oPa7sDf4g'").map((finding) => finding.ruleId)).toEqual(["generic-assignment"]);
+  });
+
   it("ignores placeholders and low-entropy values", () => {
     expect(scanForSecrets("password: <your-password>\napi_key = changeme\ntoken: xxxxxxxxxxxxxxxxxxxx\nsecret = aaaaaaaaaaaaaaaaaaaa")).toEqual([]);
   });
