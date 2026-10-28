@@ -6,3 +6,5 @@ export { errorCodeSchema, statusForCode } from "./errors";
 export type { ErrorCode } from "./errors";
 export { routes, whoamiDataSchema } from "./routes";
 export type { RouteAccess, RouteName, WhoamiData } from "./routes";
+export { documentMetaSchema, fileEntrySchema, fileKindSchema, manifestDataSchema, manifestSectorSchema, pushOutcomeSchema, pushRejectionSchema, searchHitSchema, syncRoutes } from "./sync-routes";
+export type { DocumentMeta, FileEntry, ManifestData, ManifestSector, PushOutcome, SearchHit } from "./sync-routes";

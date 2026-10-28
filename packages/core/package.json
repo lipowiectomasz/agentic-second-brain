@@ -10,7 +10,8 @@
     "./body-hash": "./src/body-hash.ts",
     "./secrets": "./src/secrets.ts",
     "./file-kind": "./src/file-kind.ts",
-    "./document-status": "./src/document-status.ts"
+    "./document-status": "./src/document-status.ts",
+    "./sync-path": "./src/sync-path.ts"
   },
   "dependencies": {
     "node-appwrite": "31.0.0",

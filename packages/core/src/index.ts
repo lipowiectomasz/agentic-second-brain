@@ -27,3 +27,5 @@ export {
 export type { FrontmatterSplit, ManagedFrontmatterKey } from "./body-hash";
 export { maskSecret, scanForSecrets, shannonEntropy } from "./secrets";
 export type { SecretFinding, SecretRuleId } from "./secrets";
+export { validateSyncPath } from "./sync-path";
+export type { SyncPathProblem } from "./sync-path";
