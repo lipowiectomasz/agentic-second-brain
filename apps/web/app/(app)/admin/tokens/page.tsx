@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { AdminTabs } from "@/components/admin/admin-tabs";
+import { AdminNav } from "@/components/admin/admin-nav";
 import { PageHeader } from "@/components/page-header";
 import { TokensTable } from "@/components/tokens/tokens-table";
 import { requireOrgAdmin } from "@/lib/auth/caller";
@@ -17,7 +17,7 @@ export default function AdminTokensPage() {
   return (
     <main className="page">
       <PageHeader folio="Admin" title="Tokens" />
-      <AdminTabs />
+      <AdminNav />
       <Suspense fallback={<p className="small muted">Loading tokens...</p>}>
         <AllTokens />
       </Suspense>

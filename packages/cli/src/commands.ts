@@ -1,4 +1,6 @@
+import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { scanForSecrets } from "@cortex/core/secrets";
 import { createInterface } from "node:readline";
 import { routes } from "@cortex/gateway-contract";
 import type { Credentials } from "./credentials";
@@ -10,8 +12,9 @@ import type { SyncContext } from "./engine";
 import { pull, push, report } from "./engine";
 import { CliError, exitCodes } from "./errors";
 import { writeLocal } from "./files";
+import { stripManaged } from "./frontmatter";
 import { GatewayClient } from "./gateway-client";
-import { localPathFor } from "./layout";
+import { localPathFor, locate } from "./layout";
 import type { Output } from "./output";
 import { readState } from "./state";
 
@@ -117,6 +120,30 @@ export async function search(env: CommandEnv, flags: Flags, query: string): Prom
     const badge = hit.docId === null ? "" : `  [${hit.docId} ${hit.status}]`;
     env.out.info(`${Math.round(hit.similarity * 100)}%  ${hit.sectorName}/${hit.path}  > ${hit.heading}${badge}\n    ${hit.snippet}`);
   }
+  return exitCodes.ok;
+}
+
+export async function propose(env: CommandEnv, flags: Flags, file: string | undefined): Promise<number> {
+  if (file === undefined || (flags.as !== "standard" && flags.as !== "procedure")) throw new CliError('Use: cortex propose <file> --as standard|procedure [--path <spine path>] --message "<why>"', exitCodes.usage);
+  if (typeof flags.message !== "string" || flags.message.trim() === "") throw new CliError('Explain why with --message "<why the whole team should follow this>".', exitCodes.usage);
+  const absolute = path.resolve(env.cwd, file);
+  const relative = path.relative(env.root, absolute).split(path.sep).join("/");
+  const { text } = stripManaged(await readFile(absolute, "utf8"));
+  const findings = scanForSecrets(text);
+  if (findings.length > 0) throw new CliError(`${file} looks like it contains a secret (line ${findings[0]?.line ?? "?"}). Remove it and try again.`, exitCodes.secret);
+  const ctx = await syncContext(env);
+  const manifest = await ctx.client.call("manifest", {});
+  const location = relative.startsWith("..") ? null : locate(relative, manifest.sectors);
+  const inSpine = location?.sector.kind === "spine" && /^(standards|procedures)\//.test(location.path);
+  const targetPath = typeof flags.path === "string" ? flags.path : inSpine ? (location?.path ?? null) : null;
+  if (targetPath === null) throw new CliError("Name the spine path with --path standards/<name>.md or procedures/<name>.md.", exitCodes.usage);
+  const spine = manifest.sectors.find((sector) => sector.kind === "spine");
+  const existing = manifest.files.find((entry) => entry.sectorId === spine?.id && entry.path === targetPath);
+  const title = /^#\s+(.+)$/m.exec(text)?.[1]?.trim() ?? path.basename(targetPath, ".md");
+  const source = location !== null && location.sector.kind === "project" ? { sectorId: location.sector.id, path: location.path } : null;
+  const result = await ctx.client.call("proposalsSubmit", { kind: flags.as, targetPath, baseVersion: existing?.version ?? null, title: title.slice(0, 200), rationale: flags.message.trim(), content: text, source });
+  env.out.line("+", "proposed", "success", `${targetPath} (${existing === undefined ? "new" : `change of v${existing.version}`}); an admin will review it. Proposal ${result.proposalId}`);
+  env.out.data(result);
   return exitCodes.ok;
 }
 

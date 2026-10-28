@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import { mkdir, mkdtemp, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { ID, Permission, Role, TablesDB, Teams, Users } from "node-appwrite";
+import { ID, Permission, Query, Role, TablesDB, Teams, Users } from "node-appwrite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { noopAuditSink } from "@cortex/audit";
 import { databaseIds, gatewayFunctionId, loadServerEnv } from "@cortex/config";
@@ -160,5 +160,16 @@ describe("cortex sync", () => {
     expect((await readdir(path.join(maxRoot, ".cortex", "revoked"))).some((entry) => entry.startsWith(slug))).toBe(true);
     const after = await cortex(developers.max, maxRoot, "search", "how do I undo a broken release", "--json");
     expect(after.out).not.toContain("notes/rollback.md");
+  });
+
+  it("proposes a project note as a spine standard", async () => {
+    await writeFile(note(adaRoot, "notes/review.md"), "# Code review\n\nEvery change gets one approving review.\n");
+    const proposed = await cortex(developers.ada, path.join(adaRoot, "brains", slug), "propose", "notes/review.md", "--as", "standard", "--path", `standards/test-review-${stamp}.md`, "-m", "Atlas has done this for a year.", "--root", adaRoot);
+    expect(proposed.code).toBe(0);
+    expect(proposed.out).toContain("proposed");
+    const rows = await tables.listRows({ databaseId: ids.tables, tableId: "proposals", queries: [Query.equal("proposerId", [developers.ada.userId])] });
+    expect(rows.rows[0]).toMatchObject({ targetPath: `standards/test-review-${stamp}.md`, sourceSectorId: slug, sourcePath: "notes/review.md", status: "pending", channel: "token" });
+    const leaky = await cortex(developers.ada, adaRoot, "propose", path.join(adaRoot, ".cortex", "quarantine", "brains", slug, "notes", "env.md"), "--as", "standard", "--path", "standards/env.md", "-m", "x");
+    expect(leaky.code).toBe(3);
   });
 });

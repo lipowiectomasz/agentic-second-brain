@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { AdminTabs } from "@/components/admin/admin-tabs";
+import { AdminNav } from "@/components/admin/admin-nav";
 import { PageHeader } from "@/components/page-header";
 
 export default function AdminPage() {
   return (
     <main className="page">
       <PageHeader folio="Admin" title="Administration" />
-      <AdminTabs />
+      <AdminNav />
       <div className="grid gap-5 pt-3" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(300px, 100%), 1fr))" }}>
         <Link href="/admin/sectors" className="card flex flex-col gap-2 p-5 text-inherit no-underline">
           <h2 className="h-card">Sectors</h2>

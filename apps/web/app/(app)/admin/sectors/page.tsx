@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { listSectorSummaries } from "@cortex/access";
-import { AdminTabs } from "@/components/admin/admin-tabs";
+import { AdminNav } from "@/components/admin/admin-nav";
 import { CreateSectorForm } from "@/components/admin/create-sector-form";
 import { PageHeader } from "@/components/page-header";
 import { SectorBadge } from "@/components/sectors/sector-badge";
@@ -47,7 +47,7 @@ export default function AdminSectorsPage() {
   return (
     <main className="page">
       <PageHeader folio="Admin" title="Sectors" />
-      <AdminTabs />
+      <AdminNav />
       <Suspense fallback={<div className="sk h-48 w-full" />}>
         <SectorAdministration />
       </Suspense>

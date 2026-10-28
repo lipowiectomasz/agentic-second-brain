@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import type { CommandEnv, Flags } from "./commands";
-import { login, logout, promptHidden, pull, push, report, reserve, search, statusSet, syncContext } from "./commands";
+import { login, logout, promptHidden, propose, pull, push, report, reserve, search, statusSet, syncContext } from "./commands";
 import { defaultCredentialsFile } from "./credentials";
 import { CliError, exitCodes } from "./errors";
 import { withLock } from "./lock";
@@ -26,6 +26,7 @@ const usage = `Usage: cortex <command>
   pull | push [--strict] [--delete] | sync
   search "<query>" [--include-superseded]
   reserve <spec|backlog|finding> [--sector <slug>] [--create <slug>] [--relates <ID>] [--title <text>]
+  propose <file> --as standard|procedure [--path <spine path>] -m "<why>"
   mcp [--verbose]                read-only MCP server over stdio for coding assistants
 
 Global: --root <dir>, --json, --quiet`;
@@ -60,6 +61,9 @@ export async function run(argv: string[], io: RunIo): Promise<number> {
         "token-stdin": { type: "boolean" },
         help: { type: "boolean", short: "h" },
         verbose: { type: "boolean" },
+        as: { type: "string" },
+        path: { type: "string" },
+        message: { type: "string", short: "m" },
       },
     });
   } catch (error) {
@@ -113,6 +117,8 @@ export async function run(argv: string[], io: RunIo): Promise<number> {
       case "search":
         if (rest.length === 0) throw new CliError('Use: cortex search "<query>"', exitCodes.usage);
         return await search(env, flags, rest.join(" "));
+      case "propose":
+        return await propose(env, flags, rest[0]);
       case "reserve":
         return await withLock(env.root, out.warn, () => reserve(env, flags, rest[0]));
       default:
