@@ -12,46 +12,53 @@ export function CreateSectorForm() {
   const [slugEdited, setSlugEdited] = useState<string | null>(null);
   const slug = slugEdited ?? deriveSlug(name);
   return (
-    <form action={action} className="flex flex-col gap-3 rounded-lg border p-4">
-      <h2 className="font-semibold">New sector</h2>
-      <label className="flex flex-col gap-1">
-        Name
-        <input name="name" required maxLength={128} value={name} onChange={(event) => setName(event.target.value)} className="rounded border px-3 py-2" />
-      </label>
-      <label className="flex flex-col gap-1">
-        Slug
+    <form action={action} className="card flex max-w-xl flex-col gap-4 p-6">
+      <h2 className="h-section">New sector</h2>
+      <div className="field">
+        <label className="label" htmlFor="sector-name">
+          Name
+        </label>
+        <input id="sector-name" name="name" required maxLength={128} value={name} onChange={(event) => setName(event.target.value)} className="input" />
+      </div>
+      <div className="field">
+        <label className="label" htmlFor="sector-slug">
+          Slug
+        </label>
         <input
+          id="sector-slug"
           name="slug"
           required
           pattern="[a-z0-9-]{2,64}"
           value={slug}
           onChange={(event) => setSlugEdited(event.target.value)}
-          className="rounded border px-3 py-2 font-mono"
+          className="input mono"
         />
-      </label>
-      <label className="flex flex-col gap-1">
-        Description
-        <textarea name="description" maxLength={512} rows={2} className="rounded border px-3 py-2" />
-      </label>
-      <fieldset className="flex flex-col gap-1">
-        <legend>Colour</legend>
+      </div>
+      <div className="field">
+        <label className="label" htmlFor="sector-description">
+          Description
+        </label>
+        <textarea id="sector-description" name="description" maxLength={512} rows={2} className="input" />
+      </div>
+      <fieldset className="field">
+        <legend className="label">Colour</legend>
         <div className="flex flex-wrap gap-2">
           {Object.entries(sectorColors).map(([token, hex], index) => (
-            <label key={token} className="flex items-center gap-1 text-sm">
-              <input type="radio" name="color" value={token} defaultChecked={index === 0} />
-              <span aria-hidden className="inline-block size-4 rounded-full" style={{ backgroundColor: hex }} />
+            <label key={token} className="swatch-option">
+              <input type="radio" name="color" value={token} defaultChecked={index === 0} className="sr-only" />
+              <span aria-hidden className="swatch" style={{ backgroundColor: `var(--${token}, ${hex})` }} />
               <span className="sr-only">{token}</span>
             </label>
           ))}
         </div>
       </fieldset>
       {state?.ok === false && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="err">
           {state.message}
         </p>
       )}
-      {state?.ok === true && <p className="text-sm">Sector created.</p>}
-      <button type="submit" disabled={pending} className="w-fit rounded bg-black px-4 py-2 text-white disabled:opacity-60">
+      {state?.ok === true && <p className="small" style={{ color: "var(--success)" }}>Sector created.</p>}
+      <button type="submit" disabled={pending} className="btn btn-primary self-start">
         Create sector
       </button>
     </form>

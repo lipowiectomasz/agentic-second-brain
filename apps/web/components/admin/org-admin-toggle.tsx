@@ -21,9 +21,9 @@ export function OrgAdminToggle({ userId, userName, isAdmin }: { userId: string; 
 
   return (
     <div className="flex flex-col gap-1">
-      <input type="checkbox" role="switch" aria-label={`${userName} is organisation admin`} checked={optimistic} disabled={pending} onChange={(event) => toggle(event.target.checked)} />
+      <button type="button" role="switch" className="switch" aria-label={`${userName} is organisation admin`} aria-checked={optimistic} disabled={pending} onClick={() => toggle(!optimistic)} />
       {error !== null && (
-        <span role="alert" className="text-xs text-red-700">
+        <span role="alert" className="err">
           {error}
         </span>
       )}

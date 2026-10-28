@@ -4,42 +4,57 @@ import Link from "next/link";
 import { useActionState } from "react";
 import type { LoginState } from "@/app/(auth)/login/actions";
 import { loginWithPassword } from "@/app/(auth)/login/actions";
+import { FormAlert } from "./form-alert";
 
 export function LoginForm({ next, githubEnabled, oauthFailed }: { next: string; githubEnabled: boolean; oauthFailed: boolean }) {
   const [state, action, pending] = useActionState<LoginState, FormData>(loginWithPassword, { error: null });
   const error = state.error ?? (oauthFailed ? "Signing in with GitHub failed. Try again." : null);
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-1">
+        <h1 className="serif" style={{ fontSize: 30, lineHeight: "36px" }}>
+          Sign in
+        </h1>
+        <p className="small muted">One brain for every project your team works on.</p>
+      </div>
+      {error !== null && <FormAlert message={error} />}
       {githubEnabled && (
         <>
-          <a href={`/auth/github?next=${encodeURIComponent(next)}`} className="rounded border px-4 py-2 text-center">
+          <a href={`/auth/github?next=${encodeURIComponent(next)}`} className="btn btn-secondary btn-block" style={{ height: 48 }}>
             Continue with GitHub
           </a>
-          <p className="text-center text-sm">or</p>
+          <div className="flex items-center gap-3" aria-hidden>
+            <hr className="rule flex-1" />
+            <span className="folio">or</span>
+            <hr className="rule flex-1" />
+          </div>
         </>
       )}
-      <form action={action} className="flex flex-col gap-3">
+      <form action={action} className="flex flex-col gap-4">
         <input type="hidden" name="next" value={next} />
-        <label className="flex flex-col gap-1">
-          Email
-          <input name="email" type="email" autoComplete="email" required className="rounded border px-3 py-2" />
-        </label>
-        <label className="flex flex-col gap-1">
-          Password
-          <input name="password" type="password" autoComplete="current-password" required className="rounded border px-3 py-2" />
-        </label>
-        {error !== null && (
-          <p role="alert" className="text-sm text-red-700">
-            {error}
-          </p>
-        )}
-        <button type="submit" disabled={pending} className="rounded bg-black px-4 py-2 text-white disabled:opacity-60">
+        <div className="field">
+          <label className="label" htmlFor="email">
+            Email
+          </label>
+          <input id="email" name="email" type="email" autoComplete="email" required className="input" />
+        </div>
+        <div className="field">
+          <label className="label" htmlFor="password">
+            Password
+          </label>
+          <input id="password" name="password" type="password" autoComplete="current-password" required className={`input${error !== null ? " is-invalid" : ""}`} />
+        </div>
+        <button type="submit" disabled={pending} className="btn btn-primary btn-block" style={{ height: 48 }}>
+          {pending && <span className="spinner" aria-hidden />}
           {pending ? "Signing in..." : "Sign in"}
         </button>
       </form>
-      <Link href="/signup" className="text-center text-sm underline">
-        Create an account
-      </Link>
+      <p className="small muted text-center">
+        New to Cortex?{" "}
+        <Link href="/signup" className="btn-link">
+          Create an account
+        </Link>
+      </p>
     </div>
   );
 }

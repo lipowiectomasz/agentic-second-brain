@@ -1,13 +1,14 @@
-const labels: Record<string, string> = {
-  draft: "Draft",
-  approved: "Approved",
-  in_progress: "In progress",
-  implemented: "Implemented",
-  superseded: "Superseded",
-  deprecated: "Deprecated",
+const badges: Record<string, { label: string; tone: string }> = {
+  draft: { label: "Draft", tone: "badge-muted" },
+  approved: { label: "Approved", tone: "badge-info" },
+  in_progress: { label: "In progress", tone: "badge-warning" },
+  implemented: { label: "Implemented", tone: "badge-success" },
+  superseded: { label: "Superseded", tone: "badge-danger" },
+  deprecated: { label: "Deprecated", tone: "badge-danger" },
 };
 
 export function StatusBadge({ status }: { status: string | null }) {
-  if (status === null || labels[status] === undefined) return null;
-  return <span className="rounded border px-1.5 py-0.5 text-xs">{labels[status]}</span>;
+  const badge = status === null ? undefined : badges[status];
+  if (badge === undefined) return null;
+  return <span className={`badge ${badge.tone}`}>{badge.label}</span>;
 }

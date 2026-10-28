@@ -82,6 +82,9 @@ export function SearchPalette({ sectors }: { sectors: PaletteSector[] }) {
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
       setActiveIndex((index) => Math.max(index - 1, 0));
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      dialog.current?.close();
     } else if (event.key === "Enter") {
       const result = results[activeIndex];
       if (result !== undefined) {
@@ -93,12 +96,16 @@ export function SearchPalette({ sectors }: { sectors: PaletteSector[] }) {
 
   return (
     <>
-      <button type="button" onClick={open} className="flex items-center gap-2 rounded border px-3 py-1 text-sm">
-        Search
-        <kbd className="rounded border px-1 font-mono text-xs">Ctrl K</kbd>
+      <button type="button" onClick={open} className="search-trigger">
+        <SearchIcon />
+        <span className="flex-1 text-left">Search</span>
+        <kbd className="kbd">Ctrl K</kbd>
       </button>
-      <dialog ref={dialog} aria-label="Search the brain" className="m-auto w-full max-w-2xl rounded-lg border p-0 backdrop:bg-black/40">
-        <div className="flex flex-col gap-3 p-4">
+      <dialog ref={dialog} aria-label="Search the brain" className="palette raised">
+        <div className="flex h-16 flex-none items-center gap-3 border-b border-border px-4">
+          <span className="hide-sm muted flex-none">
+            <SearchIcon />
+          </span>
           <input
             ref={input}
             type="search"
@@ -110,8 +117,12 @@ export function SearchPalette({ sectors }: { sectors: PaletteSector[] }) {
               runSearch(event.target.value, filters);
             }}
             onKeyDown={onInputKeyDown}
-            className="w-full rounded border px-3 py-2"
+            className="palette-input h-11 min-w-0 flex-1 border-0 bg-transparent text-[19px] leading-7 outline-none placeholder:text-muted-foreground"
           />
+          {state.status === "loading" && <span className="spinner muted" aria-hidden />}
+          <kbd className="kbd hide-sm">Esc</kbd>
+        </div>
+        <div className="flex-none border-b border-border px-4 py-2.5">
           <FilterChips
             sectors={sectors}
             filters={filters}
@@ -120,24 +131,49 @@ export function SearchPalette({ sectors }: { sectors: PaletteSector[] }) {
               runSearch(query, next);
             }}
           />
-          <div className="max-h-[60vh] overflow-y-auto" aria-live="polite">
-            {state.status === "idle" && <p className="text-sm">Ask anything about your brain</p>}
-            {state.status === "loading" && (
-              <div aria-label="Loading results" className="flex flex-col gap-2">
-                {[0, 1, 2].map((row) => (
-                  <div key={row} className="h-14 animate-pulse rounded bg-neutral-100" />
-                ))}
-              </div>
-            )}
-            {state.status === "error" && <p className="text-sm">Search is unavailable. Try again.</p>}
-            {state.status === "results" && results.length === 0 && <p className="text-sm">No matches. Try describing the problem in other words.</p>}
-            {state.status === "results" && results.length > 0 && <SearchResults results={results} activeId={results[activeIndex]?.chunkId ?? null} onSelect={select} />}
-          </div>
-          <p className="text-xs">
-            <kbd className="font-mono">↑↓</kbd> select · <kbd className="font-mono">Enter</kbd> open · <kbd className="font-mono">Esc</kbd> close
-          </p>
         </div>
+        <div className="palette-results" aria-live="polite">
+          {state.status === "idle" && (
+            <div className="flex flex-col gap-2.5 px-6 pt-5 pb-6">
+              <p className="folio">Ask anything about your brain</p>
+              <p className="xsmall muted">Search reads meaning, not keywords. Describe the problem in your own words.</p>
+            </div>
+          )}
+          {state.status === "loading" && (
+            <div aria-label="Loading results" className="flex flex-col gap-4.5 px-5 pt-3.5 pb-5">
+              {[0, 1, 2].map((row) => (
+                <div key={row} className="grid grid-cols-[1fr_90px] gap-4">
+                  <div className="flex flex-col gap-2">
+                    <span className="sk block h-4 w-[55%]" />
+                    <span className="sk block h-2.5 w-[30%]" />
+                    <span className="sk block h-2.5 w-[90%]" />
+                  </div>
+                  <span className="sk block h-2 w-full" />
+                </div>
+              ))}
+            </div>
+          )}
+          {state.status === "error" && <p className="small px-6 py-10 text-center">Search is unavailable. Try again.</p>}
+          {state.status === "results" && results.length === 0 && (
+            <p className="small muted flex flex-col items-center gap-2.5 px-6 py-10 text-center">
+              <span className="serif text-xl text-foreground">No matches.</span> Try describing the problem in other words.
+            </p>
+          )}
+          {state.status === "results" && results.length > 0 && <SearchResults results={results} activeId={results[activeIndex]?.chunkId ?? null} onSelect={select} />}
+        </div>
+        <p className="xsmall muted flex flex-none items-center gap-2 border-t border-border px-4 py-2.5">
+          <kbd className="kbd">↑↓</kbd> select <kbd className="kbd">Enter</kbd> open <kbd className="kbd">Esc</kbd> close
+        </p>
       </dialog>
     </>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+      <circle cx="7" cy="7" r="4.8" />
+      <path d="m10.5 10.5 3.5 3.5" />
+    </svg>
   );
 }

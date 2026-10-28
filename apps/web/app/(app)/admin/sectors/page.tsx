@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import { listSectorSummaries } from "@cortex/access";
+import { AdminTabs } from "@/components/admin/admin-tabs";
 import { CreateSectorForm } from "@/components/admin/create-sector-form";
-import { SectorSwatch } from "@/components/sectors/sector-swatch";
+import { PageHeader } from "@/components/page-header";
+import { SectorBadge } from "@/components/sectors/sector-badge";
 import { getAccessDeps } from "@/lib/access-deps";
 import { requireOrgAdmin } from "@/lib/auth/caller";
 
@@ -10,10 +12,11 @@ async function SectorAdministration() {
   const sectors = await listSectorSummaries(caller, getAccessDeps());
   return (
     <>
-      <table className="w-full text-left text-sm">
+      <div className="tbl-box">
+      <table className="tbl">
         <thead>
           <tr>
-            <th className="py-2">Sector</th>
+            <th>Sector</th>
             <th>Slug</th>
             <th>Files</th>
             <th>Members</th>
@@ -22,14 +25,11 @@ async function SectorAdministration() {
         </thead>
         <tbody>
           {sectors.map((sector) => (
-            <tr key={sector.id} className="border-t">
-              <td className="py-2">
-                <span className="inline-flex items-center gap-2">
-                  <SectorSwatch color={sector.color} />
-                  {sector.name}
-                </span>
+            <tr key={sector.id}>
+              <td>
+                <SectorBadge name={sector.name} color={sector.color} />
               </td>
-              <td className="font-mono">{sector.slug}</td>
+              <td className="mono">{sector.slug}</td>
               <td>{sector.fileCount}</td>
               <td>{sector.kind === "spine" ? "Everyone" : sector.memberCount}</td>
               <td>{sector.lastChangeAt === null ? "Never" : new Date(sector.lastChangeAt).toISOString().slice(0, 10)}</td>
@@ -37,6 +37,7 @@ async function SectorAdministration() {
           ))}
         </tbody>
       </table>
+      </div>
       <CreateSectorForm />
     </>
   );
@@ -44,9 +45,10 @@ async function SectorAdministration() {
 
 export default function AdminSectorsPage() {
   return (
-    <main className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-10">
-      <h1 className="text-2xl font-semibold">Sectors</h1>
-      <Suspense fallback={<p>Loading...</p>}>
+    <main className="page">
+      <PageHeader folio="Admin" title="Sectors" />
+      <AdminTabs />
+      <Suspense fallback={<div className="sk h-48 w-full" />}>
         <SectorAdministration />
       </Suspense>
     </main>

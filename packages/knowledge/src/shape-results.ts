@@ -28,8 +28,16 @@ export function headingAnchor(heading: string): string {
   return new GithubSlugger().slug(last);
 }
 
+const headingLine = /^#{1,6}\s+/;
+
+function withoutHeadings(text: string): string {
+  const lines = text.split("\n");
+  const body = lines.filter((line) => !headingLine.test(line.trim())).join(" ");
+  return body.trim() === "" ? lines.map((line) => line.trim().replace(headingLine, "")).join(" ") : body;
+}
+
 export function snippetOf(text: string): string {
-  const collapsed = text.replace(/\s+/g, " ").trim();
+  const collapsed = withoutHeadings(text).replace(/\s+/g, " ").trim();
   if (collapsed.length <= snippetLength) return collapsed;
   const cut = collapsed.slice(0, snippetLength);
   const boundary = cut.lastIndexOf(" ");
