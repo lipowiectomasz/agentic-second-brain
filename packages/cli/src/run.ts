@@ -66,7 +66,7 @@ export async function run(argv: string[], io: RunIo): Promise<number> {
   const flags = parsed.values as Flags;
   const [command, ...rest] = parsed.positionals;
   const quiet = flags.quiet === true;
-  const out = createOutput({ quiet, json: flags.json === true, color: io.isTty === true && io.env.NO_COLOR === undefined, stdout: io.stdout, stderr: io.stderr });
+  const out = createOutput({ quiet, json: flags.json === true, color: io.isTty === true && (io.env.NO_COLOR ?? "") === "", stdout: io.stdout, stderr: io.stderr });
   if (command === undefined || flags.help === true) {
     io.stdout(`${usage}\n`);
     return command === undefined && flags.help !== true ? exitCodes.usage : exitCodes.ok;
