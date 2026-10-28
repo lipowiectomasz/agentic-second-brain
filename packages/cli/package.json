@@ -1,0 +1,29 @@
+{
+  "name": "@cortex/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "cortex": "dist/cortex.mjs"
+  },
+  "exports": {
+    ".": "./src/run.ts"
+  },
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@cortex/core": "0.1.0",
+    "@cortex/gateway-contract": "0.1.0",
+    "@cortex/knowledge": "0.1.0",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "@cortex/audit": "0.1.0",
+    "@cortex/config": "0.1.0",
+    "@cortex/server-kit": "0.1.0",
+    "@cortex/tokens": "0.1.0",
+    "node-appwrite": "31.0.0"
+  }
+}
