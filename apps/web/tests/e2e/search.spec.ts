@@ -18,9 +18,9 @@ test("members search by meaning, open the section and see related thoughts", asy
   await expect(results.getByRole("option", { name: /Rolling back a failed deployment/ })).toBeVisible();
   await expect(results.getByText(/% match/).first()).toBeVisible();
 
-  await page.getByRole("button", { name: "spec", exact: true }).click();
+  await page.getByRole("button", { name: "backlog", exact: true }).click();
   await expect(page.getByText("No matches. Try describing the problem in other words.")).toBeVisible({ timeout: 15_000 });
-  await page.getByRole("button", { name: "spec", exact: true }).click();
+  await page.getByRole("button", { name: "backlog", exact: true }).click();
   await page.getByRole("button", { name: "note", exact: true }).click();
   await expect(results.getByRole("option").first()).toBeVisible({ timeout: 15_000 });
 

@@ -1,7 +1,7 @@
 import { ID, Permission, Query, Role, TablesDB, Teams, VectorsDB } from "node-appwrite";
 import { noopAuditSink } from "@cortex/audit";
 import { databaseIds, loadServerEnv } from "@cortex/config";
-import { createAppwriteEmbedder, ingestFile } from "@cortex/knowledge";
+import { createAppwriteEmbedder, ingestFile, setDocumentStatus } from "@cortex/knowledge";
 import { createAdminClient, toCaller } from "@cortex/server-kit";
 
 export const e2eSectorId = "e2e-knowledge";
@@ -43,6 +43,15 @@ export async function seedKnowledge(memberIds: string[]): Promise<void> {
   for (const [path, content] of corpus) {
     await ingestFile(deps, writer, { sectorId: e2eSectorId, path, content, baseVersion: null, baseHash: null });
   }
+  const write = (path: string, content: string, declared?: { supersedes?: string; relatesTo?: string }, baseVersion: number | null = null) =>
+    ingestFile(deps, writer, { sectorId: e2eSectorId, path, content, baseVersion, baseHash: null, ...(declared === undefined ? {} : { declared }) });
+  await write("specs/SPEC-001-label-retries.md", "# Carrier label retries\n\nRetry carrier label requests three times with a fixed pause.\n");
+  await setDocumentStatus(deps, writer, { sectorId: e2eSectorId, docId: "SPEC-001", status: "approved" });
+  await write("specs/SPEC-002-label-backoff.md", "# Carrier label backoff\n\nRetry carrier label requests with exponential backoff and jitter.\n", { supersedes: "SPEC-001" });
+  await setDocumentStatus(deps, writer, { sectorId: e2eSectorId, docId: "SPEC-002", status: "approved" });
+  await write("specs/SPEC-002-label-backoff.md", "# Carrier label backoff\n\nRetry carrier label requests with exponential backoff and full jitter.\n", undefined, 1);
+  await write("docs/findings/FINDING-001-label-limits.md", "# Carrier rate limits\n\nThe carrier allows ten label requests per second.\n", { relatesTo: "SPEC-002" });
+  await write("docs/findings/FINDING-002-label-queue.md", "# Manual label queue\n\nExhausted retries land in the manual queue.\n", { relatesTo: "SPEC-002" });
 }
 
 export async function removeKnowledge(): Promise<void> {
