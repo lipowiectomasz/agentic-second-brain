@@ -91,7 +91,7 @@ async function FileDetails({ params }: { params: PageProps<"/files/[fileId]">["p
               Supersedes <DocId id={file.supersedes} {...(file.supersedesFileId === null ? {} : { href: `/files/${file.supersedesFileId}` })} />
             </p>
           )}
-          <FileHeaderActions />
+          <FileHeaderActions {...(file.sectorId === "spine" && (file.kind === "standard" || file.kind === "procedure") ? { proposeHref: `/proposals/new?from=${file.fileId}` } : {})} />
           <hr className="rule-double mt-1.5" />
           {file.docId !== null && file.kind !== "finding" && (
             <Suspense fallback={null}>

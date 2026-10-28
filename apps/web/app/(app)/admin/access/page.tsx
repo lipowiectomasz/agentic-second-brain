@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { getAccessMatrix } from "@cortex/access";
 import { AccessMatrixTable } from "@/components/admin/access-matrix";
-import { AdminTabs } from "@/components/admin/admin-tabs";
+import { AdminNav } from "@/components/admin/admin-nav";
 import { PageHeader } from "@/components/page-header";
 import { getAccessDeps } from "@/lib/access-deps";
 import { requireOrgAdmin } from "@/lib/auth/caller";
@@ -24,7 +24,7 @@ export default function AdminAccessPage() {
           <strong className="font-medium text-foreground">Reader</strong> searches and reads. <strong className="font-medium text-foreground">Maintainer</strong> also pushes files and approves requests. Changes save as you make them.
         </p>
       </PageHeader>
-      <AdminTabs />
+      <AdminNav />
       <Suspense fallback={<div className="sk h-64 w-full" />}>
         <AccessMatrixSection />
       </Suspense>
