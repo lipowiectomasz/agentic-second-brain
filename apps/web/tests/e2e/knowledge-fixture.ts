@@ -26,7 +26,7 @@ export async function seedKnowledge(memberIds: string[]): Promise<void> {
     databaseId: ids.tables,
     tableId: "sectors",
     rowId: e2eSectorId,
-    data: { slug: e2eSectorId, name: "E2E Knowledge", kind: "project", teamId: e2eTeamId, color: "#1d6f70" },
+    data: { slug: e2eSectorId, name: "E2E Knowledge", kind: "project", teamId: e2eTeamId, color: "#1b6a6b" },
     permissions: [Permission.read(Role.users())],
   });
   for (const userId of memberIds) await new Teams(admin).createMembership({ teamId: e2eTeamId, userId, roles: ["reader"] });
