@@ -11,7 +11,7 @@ function formatDate(value: string | null): string {
 export function SectorCard({ sector }: { sector: SectorView }) {
   const locked = sector.myRole === null;
   return (
-    <article className="card relative flex min-h-[210px] flex-col gap-2.5 px-5 pb-4 pt-6" aria-label={sector.name} style={locked ? undefined : sectorStyle(sector.color)}>
+    <article id={`sector-${sector.id}`} className="card relative flex min-h-[210px] scroll-mt-20 flex-col gap-2.5 px-5 pb-4 pt-6" aria-label={sector.name} style={locked ? undefined : sectorStyle(sector.color)}>
       <span aria-hidden className="absolute -top-px left-5 h-1.5 w-12 rounded-b-sm" style={{ background: locked ? "var(--color-locked)" : "var(--c)" }} />
       <h2 className="serif" style={{ fontSize: 22, lineHeight: "28px" }}>
         {sector.name}

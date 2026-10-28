@@ -5,7 +5,7 @@ import { sectorReadPermissions } from "@cortex/core";
 import type { Caller } from "@cortex/server-kit";
 import { createSessionClient, toCaller } from "@cortex/server-kit";
 import type { KnowledgeReadDeps } from "../src";
-import { KnowledgeStore, createAppwriteEmbedder, createQueryEmbeddingCache, ingestFile, readFile, related, relatedFindings, search, setDocumentStatus } from "../src";
+import { KnowledgeStore, createAppwriteEmbedder, createQueryEmbeddingCache, createFileVectorCache, getBrainGraph, ingestFile, readFile, related, relatedFindings, search, setDocumentStatus } from "../src";
 import { admin, env, ids, stamp, writeDeps } from "./helpers";
 
 const deps = writeDeps();
@@ -134,5 +134,20 @@ describe("semantic search", () => {
     expect(await relatedFindings(readA, { sectorId: sectors.a, docId: "SPEC-001" })).toEqual([]);
     expect(await relatedFindings(readB, { sectorId: sectors.a, docId: "SPEC-002" })).toEqual([]);
     expect(await relatedFindings(readA, { sectorId: sectors.a, docId: "not an id" })).toEqual([]);
+  });
+
+  it("draws a map of only the caller's files with other sectors locked", async () => {
+    const cache = createFileVectorCache(100);
+    const graphA = await getBrainGraph(readA, cache, { readableSectorIds: [sectors.a], now: new Date() });
+    const graphB = await getBrainGraph(readB, cache, { readableSectorIds: [sectors.b], now: new Date() });
+    expect(graphA.files.every((file) => file.sectorId === sectors.a || !Object.values(sectors).includes(file.sectorId))).toBe(true);
+    expect(graphA.files.some((file) => file.path === "notes/rollback.md")).toBe(true);
+    expect(graphA.files.some((file) => file.path === "specs/SPEC-001-deploy.md")).toBe(false);
+    expect(graphA.sectors.find((sector) => sector.id === sectors.b)?.locked).toBe(true);
+    expect(graphB.files.some((file) => file.sectorId === sectors.a)).toBe(false);
+    expect(graphB.sectors.find((sector) => sector.id === sectors.a)?.locked).toBe(true);
+    const ids = new Set(graphA.files.map((file) => file.id));
+    expect(graphA.edges.every((edge) => ids.has(edge.source) && ids.has(edge.target))).toBe(true);
+    expect(JSON.stringify(graphA)).not.toContain("embeddings");
   });
 });
