@@ -40,10 +40,10 @@ export class GatewayClient {
 }
 
 function toCliError(status: number, code: string, message: string, details?: Record<string, string | number>): CliError {
-  if (code === "token_invalid") return new CliError("Your token is invalid, expired or revoked. Run cortex login.", exitCodes.auth);
-  if (code === "rate_limited") return new CliError(`Too many failed attempts. Try again in ${details?.retryAfter ?? "a few"} seconds.`, exitCodes.rateLimited);
+  if (code === "token_invalid") return new CliError("Your token is invalid, expired or revoked. Run cortex login.", exitCodes.auth, code);
+  if (code === "rate_limited") return new CliError(`Too many failed attempts. Try again in ${details?.retryAfter ?? "a few"} seconds.`, exitCodes.rateLimited, code);
   if (code === "token_scope") return new CliError("This token can only read. Create a read and write token in the web app.", exitCodes.scope);
   if (code === "forbidden") return new CliError(message, exitCodes.scope);
-  if (status >= 500) return new CliError("The Cortex server could not complete the request.", exitCodes.unreachable);
-  return new CliError(message, exitCodes.unexpected);
+  if (status >= 500) return new CliError("The Cortex server could not complete the request.", exitCodes.unreachable, code);
+  return new CliError(message, exitCodes.unexpected, code);
 }

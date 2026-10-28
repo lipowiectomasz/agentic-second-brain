@@ -15,6 +15,7 @@ export class CliError extends Error {
   constructor(
     message: string,
     readonly exitCode: number,
+    readonly gatewayCode: string | null = null,
   ) {
     super(message);
     this.name = "CliError";

@@ -4,6 +4,7 @@ import { login, logout, promptHidden, pull, push, report, reserve, search, statu
 import { defaultCredentialsFile } from "./credentials";
 import { CliError, exitCodes } from "./errors";
 import { withLock } from "./lock";
+import { runMcp } from "./mcp/run-mcp";
 import { createOutput } from "./output";
 
 export interface RunIo {
@@ -25,6 +26,7 @@ const usage = `Usage: cortex <command>
   pull | push [--strict] [--delete] | sync
   search "<query>" [--include-superseded]
   reserve <spec|backlog|finding> [--sector <slug>] [--create <slug>] [--relates <ID>] [--title <text>]
+  mcp [--verbose]                read-only MCP server over stdio for coding assistants
 
 Global: --root <dir>, --json, --quiet`;
 
@@ -57,6 +59,7 @@ export async function run(argv: string[], io: RunIo): Promise<number> {
         function: { type: "string" },
         "token-stdin": { type: "boolean" },
         help: { type: "boolean", short: "h" },
+        verbose: { type: "boolean" },
       },
     });
   } catch (error) {
@@ -82,6 +85,8 @@ export async function run(argv: string[], io: RunIo): Promise<number> {
   };
   try {
     switch (command) {
+      case "mcp":
+        return await runMcp({ credentialsFile: env.credentialsFile, fetch: env.fetch, log: (line) => (flags.verbose === true ? io.stderr(`${line}\n`) : undefined) });
       case "login":
         return await login(env, flags);
       case "logout":
