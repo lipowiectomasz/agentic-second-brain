@@ -2,19 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { NavCount } from "@/components/nav/nav-count";
+import type { ProposalsNav } from "@/components/nav/nav-links";
+import { adminNavItems } from "@/components/nav/nav-links";
 
-const tabs = [
-  { href: "/admin/sectors", label: "Sectors" },
-  { href: "/admin/access", label: "Access" },
-];
-
-export function AdminTabs() {
+export function AdminTabs({ proposals = null }: { proposals?: ProposalsNav | null }) {
   const pathname = usePathname();
   return (
     <nav aria-label="Admin" className="-mb-3 flex gap-1 overflow-x-auto border-b border-border">
-      {tabs.map((tab) => (
+      {adminNavItems(proposals).map((tab) => (
         <Link key={tab.href} href={tab.href} className="tab" aria-current={pathname.startsWith(tab.href) ? "page" : undefined}>
           {tab.label}
+          {tab.count !== undefined && <NavCount count={tab.count} compact />}
         </Link>
       ))}
     </nav>
