@@ -25,6 +25,7 @@ export const filesTable: TableSpec = {
     { key: "sector_idx", type: "key", columns: ["sectorId"] },
     { key: "sector_path_unique", type: "unique", columns: ["sectorId", "path"] },
     { key: "sector_doc_unique", type: "unique", columns: ["sectorId", "docId"] },
+    { key: "sector_relates_idx", type: "key", columns: ["sectorId", "relatesTo"] },
   ],
 };
 

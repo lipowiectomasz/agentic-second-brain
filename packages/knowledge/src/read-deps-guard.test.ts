@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { relatedFindings } from "./findings";
 import { listManifest } from "./read-file";
 import { readFile } from "./read-file";
 import { related } from "./related";
@@ -31,6 +32,7 @@ describe("read path dependency guard", () => {
     ["related", (deps: never) => related(deps, { fileId: "f1" })],
     ["readFile", (deps: never) => readFile(deps, { fileId: "f1" })],
     ["listManifest", (deps: never) => listManifest(deps, {})],
+    ["relatedFindings", (deps: never) => relatedFindings(deps, { sectorId: "atlas", docId: "SPEC-001" })],
   ])("%s only reads scoped dependencies, never an admin client", async (_, run) => {
     const { deps, touched } = guardedDeps();
     await run(deps as never).catch(() => undefined);

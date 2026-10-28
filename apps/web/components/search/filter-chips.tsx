@@ -60,10 +60,22 @@ export function FilterChips({ sectors, filters, onChange }: { sectors: PaletteSe
             {kind}
           </button>
         ))}
-        <label className="small muted ml-auto flex flex-none items-center gap-2 pl-2">
-          <input type="checkbox" checked={filters.includeSuperseded} onChange={(event) => onChange({ ...filters, includeSuperseded: event.target.checked })} />
-          Include superseded
-        </label>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <span className="xsmall muted">Superseded and deprecated documents are hidden unless you include them.</span>
+        <span className="inline-flex items-center gap-2.5">
+          <span className="small" id="include-superseded-label">
+            Include superseded
+          </span>
+          <button
+            type="button"
+            className="switch"
+            role="switch"
+            aria-checked={filters.includeSuperseded}
+            aria-labelledby="include-superseded-label"
+            onClick={() => onChange({ ...filters, includeSuperseded: !filters.includeSuperseded })}
+          />
+        </span>
       </div>
     </div>
   );

@@ -1,9 +1,10 @@
 "use client";
 
 import type { SearchResult } from "@cortex/knowledge/search-types";
+import { DocId } from "@/components/documents/doc-id";
+import { DocumentStatusBadge } from "@/components/documents/document-status-badge";
 import { sectorStyle } from "@/components/sectors/sector-badge";
 import { SimilarityBar } from "./similarity-bar";
-import { StatusBadge } from "./status-badge";
 
 export function groupBySector(results: SearchResult[]): Array<{ sectorId: string; sectorName: string; sectorColor: string; items: SearchResult[] }> {
   const groups = new Map<string, { sectorId: string; sectorName: string; sectorColor: string; items: SearchResult[] }>();
@@ -29,34 +30,37 @@ export function SearchResults({ results, activeId, onSelect }: { results: Search
             <span className="folio">{group.items.length}</span>
           </h3>
           <div className="stagger flex flex-col gap-0.5">
-            {group.items.map((result) => (
-              <button
-                key={result.chunkId}
-                type="button"
-                role="option"
-                aria-selected={result.chunkId === activeId}
-                onClick={() => onSelect(result)}
-                className={`result-option ${result.status === "superseded" || result.status === "deprecated" ? "is-stale" : ""}`}
-              >
-                <span className="flex min-w-0 flex-col gap-0.5">
-                  <span className="flex min-w-0 items-center gap-2">
-                    {result.docId !== null && <span className="mono xsmall muted flex-none">{result.docId}</span>}
-                    <span className="serif truncate text-[17px] leading-6">{result.title}</span>
-                    <StatusBadge status={result.status} />
+            {group.items.map((result) => {
+              const stale = result.status === "superseded" || result.status === "deprecated";
+              return (
+                <button
+                  key={result.chunkId}
+                  type="button"
+                  role="option"
+                  aria-selected={result.chunkId === activeId}
+                  onClick={() => onSelect(result)}
+                  className={`result-option ${stale ? "is-dim" : ""}`}
+                >
+                  <span className="flex min-w-0 flex-col gap-0.5">
+                    <span className="flex min-w-0 items-center gap-2">
+                      {result.docId !== null && <DocId id={result.docId} />}
+                      <span className="r-title serif truncate text-[17px] leading-6">{result.title}</span>
+                      {stale && <DocumentStatusBadge status={result.status === "superseded" ? "superseded" : "deprecated"} sealed={false} />}
+                    </span>
+                    <span className="xsmall muted">{result.heading}</span>
+                    <span className="r-snip small clamp-2 mt-1">{result.snippet}</span>
+                    <span className="mt-1 flex min-w-0 items-center gap-2.5">
+                      <span className="mono xsmall muted truncate">{result.path}</span>
+                      <span className="badge badge-kind flex-none">{result.kind}</span>
+                    </span>
                   </span>
-                  <span className="xsmall muted">{result.heading}</span>
-                  <span className="small clamp-2 mt-1">{result.snippet}</span>
-                  <span className="mt-1 flex min-w-0 items-center gap-2.5">
-                    <span className="mono xsmall muted truncate">{result.path}</span>
-                    <span className="badge badge-kind flex-none">{result.kind}</span>
+                  <span className="flex flex-col items-end gap-2.5">
+                    <SimilarityBar similarity={result.similarity} />
+                    {result.chunkId === activeId && <kbd className="kbd hide-sm">Enter</kbd>}
                   </span>
-                </span>
-                <span className="flex flex-col items-end gap-2.5">
-                  <SimilarityBar similarity={result.similarity} />
-                  {result.chunkId === activeId && <kbd className="kbd hide-sm">Enter</kbd>}
-                </span>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         </section>
       ))}

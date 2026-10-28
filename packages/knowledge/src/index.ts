@@ -17,6 +17,7 @@ export { cosineSimilarity, meanVector, normalize, similarityFromDistance } from 
 export { isChunkVisible } from "./visibility";
 export { createQueryEmbeddingCache, normalizeQuery } from "./query-cache";
 export type { QueryEmbeddingCache } from "./query-cache";
+export { relatedFindings } from "./findings";
 export { listManifest, readFile } from "./read-file";
 export { related } from "./related";
 export { search } from "./search";

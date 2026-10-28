@@ -51,6 +51,27 @@ describe.each(Object.entries(themes))("%s theme contrast", (_, tokens) => {
     expect(contrast(value("accent-foreground"), value("accent"))).toBeGreaterThanOrEqual(4.5);
   });
 
+  const mix = (color: string, percent: number, base: string): string => {
+    const channel = (hex: string, offset: number) => Number.parseInt(hex.slice(offset, offset + 2), 16);
+    return `#${[1, 3, 5].map((offset) => Math.round(channel(color, offset) * (percent / 100) + channel(base, offset) * (1 - percent / 100)).toString(16).padStart(2, "0")).join("")}`;
+  };
+
+  it.each([
+    ["foreground", "info", 7],
+    ["foreground", "warning", 9],
+    ["foreground", "success", 8],
+    ["foreground", "danger", 7],
+    ["foreground", "success", 11],
+    ["foreground", "danger", 9],
+    ["muted-foreground", "success", 16],
+    ["muted-foreground", "danger", 13],
+    ["info", "info", 8],
+    ["success", "success", 8],
+    ["warning", "warning", 10],
+  ] as const)("%s on a %s tint of %s%% stays at least 4.5:1", (text, tint, percent) => {
+    expect(contrast(value(text), mix(value(tint), percent, value("surface")))).toBeGreaterThanOrEqual(4.6);
+  });
+
   it.each(["input", "ring"])("%s against the background is at least 3:1", (token) => {
     expect(contrast(value(token), value("background"))).toBeGreaterThanOrEqual(3);
   });
@@ -71,10 +92,13 @@ function sourceFiles(directory: string): string[] {
   });
 }
 
+const imageRenderers = new Set(["app/apple-icon.tsx"]);
+
 describe("colour literals", () => {
   it("live only in the stylesheet", () => {
     const offenders = ["app", "components", "lib"]
       .flatMap((directory) => sourceFiles(path.join(webRoot, directory)))
+      .filter((file) => !imageRenderers.has(path.relative(webRoot, file)))
       .filter((file) => /#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\(|-\[#/i.test(readFileSync(file, "utf8")))
       .map((file) => path.relative(webRoot, file));
     expect(offenders).toEqual([]);
