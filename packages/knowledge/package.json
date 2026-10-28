@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./search-types": "./src/search-types.ts",
-    "./frontmatter": "./src/frontmatter.ts"
+    "./frontmatter": "./src/frontmatter.ts",
+    "./graph-types": "./src/graph-types.ts"
   },
   "dependencies": {
     "@cortex/access": "0.1.0",
