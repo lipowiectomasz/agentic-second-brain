@@ -12,3 +12,4 @@ docs/documentation/
 .playwright/
 !.env.public.example
 .demo-denylist
+backups/

@@ -16,7 +16,7 @@ TOOLS_NET := $(RUN) tools-net
 
 .DEFAULT_GOAL := help
 
-.PHONY: help seed site-deploy appwrite-public-config demo-check smoke cli-image test-perf reindex test-e2e admin-grant admin-revoke appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
+.PHONY: help seed site-deploy appwrite-public-config demo-check smoke backup-db cli-image test-perf reindex test-e2e admin-grant admin-revoke appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
 
 help:
 	@printf '%s\n' \
@@ -35,6 +35,7 @@ help:
 	  '  make site-deploy           build and publish the web app on Appwrite Sites' \
 	  '  make demo-check            scan the demo corpus for secrets and denylisted names' \
 	  '  make smoke                 check the published site and API from outside' \
+	  '  make backup-db             dump the Appwrite database to backups/' \
 	  '' \
 	  'Public instance: add ENV=public (reads .env.public); first install also needs' \
 	  '  make appwrite-install appwrite-public-config ENV=public APPWRITE_DOMAIN=<api host> PUBLIC_IP=<ip>'
@@ -124,6 +125,11 @@ cli-image:
 appwrite-public-config:
 	@test -n "$(PUBLIC_IP)" -a "$(APPWRITE_DOMAIN)" != "localhost" || { echo "Use: make appwrite-public-config APPWRITE_DOMAIN=<api host> PUBLIC_IP=<server ip>"; exit 2; }
 	sh appwrite/public-env.sh appwrite/.env "$(APPWRITE_DOMAIN)" "$(PUBLIC_IP)"
+
+backup-db:
+	mkdir -p backups
+	docker exec appwrite-postgresql sh -c 'pg_dump -U "$$POSTGRES_USER" "$$POSTGRES_DB"' | gzip > "backups/appwrite-$$(date +%F-%H%M).sql.gz"
+	@ls -lh backups | tail -1
 
 demo-check:
 	$(TOOLS) npm run demo-check -w @cortex/infra
