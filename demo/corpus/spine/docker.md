@@ -20,7 +20,7 @@ Every `npm`, `npx`, test, build and CLI command runs in a one-off service
   passing `HOST_UID=$(shell id -u) HOST_GID=$(shell id -g)`. Do not name the variables `UID` and
   `GID`: `UID` is read-only in bash, and `UID=... docker compose` fails before compose starts.
   Without a matching user, files created in the bind mount belong to root.
-- **Give it a home on a named volume** (`HOME=/home/tools`, `npm_config_cache` inside it). The npm
+- **Give it a home on a named volume** (`HOME` points at the volume, `npm_config_cache` inside it). The npm
   cache and CLI login sessions survive between runs.
 - **Split the service when part of the work needs another stack's network.** A service that
   declares an external network fails to start until that network exists. Keep `tools` without
