@@ -35,3 +35,26 @@ export const developmentKeyScopes = [
   "embeddings.write",
   "health.read",
 ] as const;
+
+export const webKeyName = "cortex-web";
+
+export const webKeyScopes = [
+  "databases.read",
+  "tables.read",
+  "columns.read",
+  "indexes.read",
+  "rows.read",
+  "rows.write",
+  "vectorsdb.read",
+  "vectorsdb.collections.read",
+  "vectorsdb.indexes.read",
+  "vectorsdb.documents.read",
+  "vectorsdb.documents.write",
+  "users.read",
+  "users.write",
+  "sessions.write",
+  "teams.read",
+  "teams.write",
+  "embeddings.write",
+  "health.read",
+] as const;

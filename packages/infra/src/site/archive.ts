@@ -44,8 +44,8 @@ async function walk(root: string, relative: string): Promise<string[]> {
 
 export async function listSiteFiles(repositoryRoot: string): Promise<string[]> {
   const files: string[] = [];
+  const entries = await readdir(repositoryRoot, { withFileTypes: true });
   for (const root of siteArchiveRoots) {
-    const entries = await readdir(repositoryRoot, { withFileTypes: true });
     const entry = entries.find((candidate) => candidate.name === root);
     if (entry === undefined) continue;
     if (entry.isDirectory()) files.push(...(await walk(repositoryRoot, root)));

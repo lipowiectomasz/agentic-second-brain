@@ -9,7 +9,7 @@ import { createAdminClient } from "@cortex/server-kit";
 import { repositoryRoot } from "../repository-paths";
 import { packSite, SiteDeployError } from "../site/archive";
 import type { SiteEnv, SiteSettings } from "../site/plan";
-import { bundleHashKey, isSecretKey, logTail, needsDeployment, ruleAction, settingsDiffer, siteId, siteSettings, siteVariables, variableChanges } from "../site/plan";
+import { deployedHashKey, deploymentHash, isSecretKey, logTail, needsDeployment, ruleAction, settingsDiffer, siteId, siteSettings, siteVariables, variableOperations } from "../site/plan";
 import { warmUp } from "../site/warm-up";
 
 const buildLimitMs = 600000;
@@ -18,7 +18,7 @@ const warmUpLimitMs = 90000;
 const failedStatuses = new Set(["failed", "canceled"]);
 
 function siteEnv(source: NodeJS.ProcessEnv): SiteEnv {
-  const names = ["CORTEX_SITE_DOMAIN", "CORTEX_SITE_URL", "CORTEX_FUNCTION_API_ENDPOINT", "NEXT_PUBLIC_APPWRITE_ENDPOINT", "NEXT_PUBLIC_APPWRITE_PROJECT_ID"] as const;
+  const names = ["CORTEX_SITE_DOMAIN", "CORTEX_SITE_URL", "CORTEX_FUNCTION_API_ENDPOINT", "CORTEX_WEB_API_KEY", "NEXT_PUBLIC_APPWRITE_ENDPOINT", "NEXT_PUBLIC_APPWRITE_PROJECT_ID"] as const;
   const missing = names.filter((name) => source[name] === undefined || source[name] === "");
   if (missing.length > 0) throw new SiteDeployError("missing_env", missing.join(", "));
   return Object.fromEntries(names.map((name) => [name, source[name] as string])) as unknown as SiteEnv;
@@ -49,16 +49,19 @@ export async function runSiteDeploy(log: (line: string) => void): Promise<number
 
     const desired = siteVariables(env, site);
     const current = await sites.listVariables({ siteId, queries: [Query.limit(100)] });
-    const changes = variableChanges(desired, current.variables);
-    for (const key of changes.create) await sites.createVariable({ siteId, variableId: ID.unique(), key, value: desired[key] ?? "", secret: isSecretKey(key) });
-    for (const change of changes.update) await sites.updateVariable({ siteId, variableId: change.id, key: change.key, value: desired[change.key] ?? "", secret: isSecretKey(change.key) });
-    const variablesChanged = changes.create.length + changes.update.length > 0;
-    if (variablesChanged) log(`variables: ${changes.create.length} created, ${changes.update.length} updated`);
+    const operations = variableOperations(desired, current.variables);
+    for (const operation of operations) {
+      if (operation.kind === "create") await sites.createVariable({ siteId, variableId: ID.unique(), key: operation.key, value: desired[operation.key] ?? "", secret: isSecretKey(operation.key) });
+      else if (operation.kind === "update") await sites.updateVariable({ siteId, variableId: operation.id, key: operation.key, value: desired[operation.key] ?? "", secret: isSecretKey(operation.key) });
+      else await sites.deleteVariable({ siteId, variableId: operation.id });
+    }
+    if (operations.length > 0) log(`variables: ${operations.map((operation) => `${operation.kind} ${operation.key}`).join(", ")}`);
 
+    const target = deploymentHash(bundle.hash, desired);
     const latest = await sites.get({ siteId });
     const active = latest.deploymentId === "" ? null : await sites.getDeployment({ siteId, deploymentId: latest.deploymentId }).catch(() => null);
-    const storedHash = current.variables.find((variable) => variable.key === bundleHashKey)?.value ?? null;
-    if (needsDeployment({ bundleHash: bundle.hash, storedHash, variablesChanged, activeReady: active?.status === "ready" })) {
+    const storedHash = current.variables.find((variable) => variable.key === deployedHashKey)?.value ?? null;
+    if (needsDeployment({ deploymentHash: target, storedHash, activeReady: active?.status === "ready" })) {
       const created = await sites.createDeployment({ siteId, code: InputFile.fromPath(bundle.archivePath, "site.tar.gz"), activate: true, installCommand: siteSettings.installCommand, buildCommand: siteSettings.buildCommand, outputDirectory: siteSettings.outputDirectory });
       log(`deployment ${created.$id}: building`);
       const deadline = Date.now() + buildLimitMs;
@@ -75,9 +78,9 @@ export async function runSiteDeploy(log: (line: string) => void): Promise<number
         if (Date.now() >= deadline) throw new SiteDeployError("build_timeout", created.$id);
         await sleep(pollMs);
       }
-      const hashVariable = (await sites.listVariables({ siteId, queries: [Query.limit(100)] })).variables.find((variable) => variable.key === bundleHashKey);
-      if (hashVariable === undefined) await sites.createVariable({ siteId, variableId: ID.unique(), key: bundleHashKey, value: bundle.hash, secret: false });
-      else await sites.updateVariable({ siteId, variableId: hashVariable.$id, key: bundleHashKey, value: bundle.hash, secret: false });
+      const hashVariable = (await sites.listVariables({ siteId, queries: [Query.limit(100)] })).variables.find((variable) => variable.key === deployedHashKey);
+      if (hashVariable === undefined) await sites.createVariable({ siteId, variableId: ID.unique(), key: deployedHashKey, value: target, secret: false });
+      else await sites.updateVariable({ siteId, variableId: hashVariable.$id, key: deployedHashKey, value: target, secret: false });
     } else {
       log("site up to date");
     }

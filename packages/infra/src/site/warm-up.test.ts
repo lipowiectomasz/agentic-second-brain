@@ -31,6 +31,11 @@ describe("warmUp", () => {
     expect(hosts).toEqual(["cortex.sites.localhost", "cortex.sites.localhost"]);
   });
 
+  it("does not count a missing site as ready", async () => {
+    const { origin } = await serve([404]);
+    await expect(warmUp(origin, "cortex.sites.localhost", ["/"], 0, noWait)).rejects.toBeInstanceOf(SiteDeployError);
+  });
+
   it("fails after the limit when the site keeps failing", async () => {
     const { origin } = await serve([502]);
     await expect(warmUp(origin, "cortex.sites.localhost", ["/"], 0, noWait)).rejects.toBeInstanceOf(SiteDeployError);

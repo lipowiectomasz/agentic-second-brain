@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ServerEnv } from "@cortex/config";
-import { logTail, needsDeployment, ruleAction, secretHashKey, settingsDiffer, siteId, siteSettings, siteVariables, variableChanges } from "./plan";
+import { deploymentHash, logTail, needsDeployment, ruleAction, secretHashKey, settingsDiffer, siteId, siteSettings, siteVariables, variableOperations } from "./plan";
 
 const env: ServerEnv = {
   APPWRITE_ENDPOINT: "http://localhost:27080/v1",
@@ -17,6 +17,7 @@ const site = {
   CORTEX_SITE_DOMAIN: "cortex.sites.localhost",
   CORTEX_SITE_URL: "http://cortex.sites.localhost:27080",
   CORTEX_FUNCTION_API_ENDPOINT: "http://appwrite-api/v1",
+  CORTEX_WEB_API_KEY: "w".repeat(40),
   NEXT_PUBLIC_APPWRITE_ENDPOINT: "http://localhost:27080/v1",
   NEXT_PUBLIC_APPWRITE_PROJECT_ID: "cortex",
 };
@@ -26,34 +27,55 @@ function asRemote(variables: Record<string, string>) {
 }
 
 describe("siteVariables", () => {
-  it("points the runtime at the internal API and the site URL", () => {
+  it("points the runtime at the internal API, the site URL and the web key", () => {
     const variables = siteVariables(env, site);
     expect(variables.APPWRITE_INTERNAL_ENDPOINT).toBe("http://appwrite-api/v1");
     expect(variables.APP_URL).toBe("http://cortex.sites.localhost:27080");
+    expect(variables.APPWRITE_API_KEY).toBe("w".repeat(40));
     expect(variables.GITHUB_OAUTH_CLIENT_ID).toBeUndefined();
     expect(variables[secretHashKey]).toMatch(/^[0-9a-f]{64}$/);
   });
 
   it("changes the secret hash when the key changes", () => {
-    expect(siteVariables(env, site)[secretHashKey]).not.toBe(siteVariables({ ...env, APPWRITE_API_KEY: "x".repeat(40) }, site)[secretHashKey]);
+    expect(siteVariables(env, site)[secretHashKey]).not.toBe(siteVariables(env, { ...site, CORTEX_WEB_API_KEY: "x".repeat(40) })[secretHashKey]);
   });
 });
 
-describe("variableChanges", () => {
-  it("creates every missing variable", () => {
+describe("variableOperations", () => {
+  it("creates every missing variable with the secret hash last", () => {
     const desired = siteVariables(env, site);
-    expect(variableChanges(desired, []).create).toEqual(Object.keys(desired));
+    const operations = variableOperations(desired, []);
+    expect(operations.map((operation) => operation.key).sort()).toEqual(Object.keys(desired).sort());
+    expect(operations.at(-1)?.key).toBe(secretHashKey);
   });
 
   it("reports nothing when the remote matches, comparing secrets by hash", () => {
     const desired = siteVariables(env, site);
-    expect(variableChanges(desired, asRemote(desired))).toEqual({ create: [], update: [] });
+    expect(variableOperations(desired, asRemote(desired))).toEqual([]);
   });
 
-  it("updates differing values and the secret when its hash moved, leaving extras alone", () => {
+  it("updates differing values and the secret when its hash moved, leaving unmanaged extras alone", () => {
     const desired = siteVariables(env, site);
-    const remote = [...asRemote(siteVariables({ ...env, APPWRITE_API_KEY: "x".repeat(40) }, site)), { $id: "extra", key: "EXTRA", value: "1", secret: false }].map((variable) => (variable.key === "APPWRITE_ENDPOINT" ? { ...variable, value: "http://elsewhere/v1" } : variable));
-    expect(variableChanges(desired, remote).update.map((change) => change.key).sort()).toEqual(["APPWRITE_API_KEY", "APPWRITE_ENDPOINT", secretHashKey].sort());
+    const remote = [...asRemote(siteVariables(env, { ...site, CORTEX_WEB_API_KEY: "x".repeat(40) })), { $id: "extra", key: "EXTRA", value: "1", secret: false }].map((variable) => (variable.key === "APPWRITE_ENDPOINT" ? { ...variable, value: "http://elsewhere/v1" } : variable));
+    const operations = variableOperations(desired, remote);
+    expect(operations.map((operation) => `${operation.kind}:${operation.key}`)).toEqual(["update:APPWRITE_ENDPOINT", "update:APPWRITE_API_KEY", `update:${secretHashKey}`]);
+  });
+
+  it("removes managed variables that are no longer wanted", () => {
+    const withGithub = siteVariables({ ...env, GITHUB_OAUTH_CLIENT_ID: "id", GITHUB_OAUTH_CLIENT_SECRET: "secret" }, site);
+    const operations = variableOperations(siteVariables(env, site), asRemote(withGithub));
+    expect(operations.map((operation) => `${operation.kind}:${operation.key}`)).toEqual(["update:APPWRITE_API_KEY", "remove:GITHUB_OAUTH_CLIENT_ID", "remove:GITHUB_OAUTH_CLIENT_SECRET", `update:${secretHashKey}`]);
+  });
+});
+
+describe("deploymentHash", () => {
+  it("follows the code and every variable, secrets through their hash only", () => {
+    const desired = siteVariables(env, site);
+    const base = deploymentHash("a", desired);
+    expect(deploymentHash("a", { ...desired })).toBe(base);
+    expect(deploymentHash("b", desired)).not.toBe(base);
+    expect(deploymentHash("a", { ...desired, APP_URL: "http://other" })).not.toBe(base);
+    expect(deploymentHash("a", siteVariables(env, { ...site, CORTEX_WEB_API_KEY: "x".repeat(40) }))).not.toBe(base);
   });
 });
 
@@ -65,12 +87,11 @@ describe("settingsDiffer", () => {
 });
 
 describe("needsDeployment", () => {
-  const base = { bundleHash: "a", storedHash: "a", variablesChanged: false, activeReady: true };
-  it("skips only when nothing changed", () => {
+  const base = { deploymentHash: "a", storedHash: "a", activeReady: true };
+  it("skips only when the deployed hash matches and the active deployment is ready", () => {
     expect(needsDeployment(base)).toBe(false);
     expect(needsDeployment({ ...base, storedHash: null })).toBe(true);
     expect(needsDeployment({ ...base, storedHash: "b" })).toBe(true);
-    expect(needsDeployment({ ...base, variablesChanged: true })).toBe(true);
     expect(needsDeployment({ ...base, activeReady: false })).toBe(true);
   });
 });
