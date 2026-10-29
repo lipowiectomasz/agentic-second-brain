@@ -2,8 +2,9 @@ import { randomBytes } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Models } from "node-appwrite";
-import { ID, Query, TablesDB, Teams, Users } from "node-appwrite";
-import { createSector, getSectorRole, setRole } from "@cortex/access";
+import { AppwriteException, ID, Query, TablesDB, Teams, Users } from "node-appwrite";
+import { SlugTakenError, createSector, getSectorRole, setRole } from "@cortex/access";
+import { sectorTeamId } from "@cortex/core";
 import { createTablesAuditSink } from "@cortex/audit";
 import type { SectorColorToken } from "@cortex/core/sector-colors";
 import { databaseIds, loadServerEnv } from "@cortex/config";
@@ -26,7 +27,11 @@ export async function runSeed(log: (line: string) => void): Promise<number> {
   const audit = createTablesAuditSink(tables, ids);
   const accessDeps = { admin: { tables, teams: new Teams(admin), users }, ids: { tables: ids.tables }, audit, includeTestIdentities: false };
 
-  const generated: Record<string, string> = {};
+  const savePassword = async (key: string, password: string) => {
+    const file = envFilePath();
+    await writeFile(file, upsertEnvFile(await readFile(file, "utf8").catch(() => ""), { [key]: password }), { mode: 0o600 });
+    log(`wrote ${key} to ${path.basename(file)}`);
+  };
   const accountIds = new Map<string, string>();
   const callers = new Map<string, Caller>();
   for (const account of manifest.accounts) {
@@ -34,8 +39,9 @@ export async function runSeed(log: (line: string) => void): Promise<number> {
     let user: Models.User<Models.Preferences>;
     if (existing === undefined) {
       const key = passwordKeys[account.key];
-      const password = process.env[key] !== undefined && process.env[key] !== "" ? process.env[key] : randomBytes(18).toString("base64url");
-      if (process.env[key] === undefined || process.env[key] === "") generated[key] = password;
+      const provided = process.env[key];
+      const password = provided !== undefined && provided !== "" ? provided : randomBytes(18).toString("base64url");
+      if (password !== provided) await savePassword(key, password);
       user = await users.create({ userId: ID.unique(), email: account.email, password, name: account.name });
       log(`account ${account.name}: created`);
     } else {
@@ -46,18 +52,24 @@ export async function runSeed(log: (line: string) => void): Promise<number> {
     accountIds.set(account.name, user.$id);
     callers.set(account.key, toCaller(user, "web"));
   }
-  if (Object.keys(generated).length > 0) {
-    const file = envFilePath();
-    await writeFile(file, upsertEnvFile(await readFile(file, "utf8").catch(() => ""), generated), { mode: 0o600 });
-    log(`wrote ${Object.keys(generated).join(", ")} to ${path.basename(file)}`);
-  }
   const actor = callers.get("admin");
   if (actor === undefined) throw new Error("demo-admin missing");
 
   for (const sector of manifest.sectors) {
-    const exists = await tables.getRow({ databaseId: ids.tables, tableId: "sectors", rowId: sector.slug }).then(() => true).catch(() => false);
+    const exists = await tables
+      .getRow({ databaseId: ids.tables, tableId: "sectors", rowId: sector.slug })
+      .then(() => true)
+      .catch((error: unknown) => {
+        if (error instanceof AppwriteException && error.code === 404) return false;
+        throw error;
+      });
     if (exists) continue;
-    await createSector(actor, { name: sector.name, slug: sector.slug, color: sector.color as SectorColorToken, description: sector.description }, accessDeps);
+    try {
+      await createSector(actor, { name: sector.name, slug: sector.slug, color: sector.color as SectorColorToken, description: sector.description }, accessDeps);
+    } catch (error) {
+      if (error instanceof SlugTakenError) throw new Error(`sector ${sector.slug}: its team exists without a sector row; delete team ${sectorTeamId(sector.slug)} and rerun`);
+      throw error;
+    }
     log(`sector ${sector.slug}: created`);
   }
 
@@ -84,7 +96,7 @@ export async function runSeed(log: (line: string) => void): Promise<number> {
   let changed = 0;
   for (const file of ingestOrder(manifest.files)) {
     const existing = await store.fileByPath(file.sector, file.path);
-    if (existing !== null && existing.content.trim() === (contents.get(file) ?? "").trim()) continue;
+    if (existing !== null && existing.content.trim() === (contents.get(file) ?? "").trim() && existing.supersedes === (file.supersedes ?? null) && existing.relatesTo === (file.relatesTo ?? null)) continue;
     const result = await ingestFile(knowledge, actor, {
       sectorId: file.sector,
       path: file.path,
