@@ -13,7 +13,8 @@
     "test-reset": "tsx src/commands/test-reset.ts",
     "admin-grant": "tsx src/commands/admin-label.ts grant",
     "admin-revoke": "tsx src/commands/admin-label.ts revoke",
-    "reindex": "tsx src/commands/reindex.ts"
+    "reindex": "tsx src/commands/reindex.ts",
+    "site-deploy": "tsx src/commands/site-deploy.ts"
   },
   "dependencies": {
     "@cortex/audit": "0.1.0",
