@@ -1,0 +1,328 @@
+{
+  "sectors": [
+    {
+      "slug": "portfolio-site",
+      "name": "Portfolio Site",
+      "color": "sector-1",
+      "description": "A personal portfolio with a contact form, a headless CMS and a single-server production deployment."
+    },
+    {
+      "slug": "browser-recorder",
+      "name": "Browser Recorder",
+      "color": "sector-2",
+      "description": "A containerised tool that records scripted browser sessions into clean videos for demos and reviews."
+    },
+    {
+      "slug": "cortex",
+      "name": "Cortex",
+      "color": "sector-4",
+      "description": "This brain itself: decisions and findings from building Cortex on Appwrite."
+    },
+    {
+      "slug": "interview-coach",
+      "name": "Interview Coach",
+      "color": "sector-5",
+      "description": "An interview training app with conversational technical sessions, knowledge quizzes and reports."
+    }
+  ],
+  "accounts": [
+    {
+      "key": "admin",
+      "name": "demo-admin",
+      "email": "demo-admin@example.com",
+      "admin": true,
+      "memberships": []
+    },
+    {
+      "key": "maintainer",
+      "name": "demo-maintainer",
+      "email": "demo-maintainer@example.com",
+      "admin": false,
+      "memberships": [
+        {
+          "sector": "cortex",
+          "role": "maintainer"
+        },
+        {
+          "sector": "portfolio-site",
+          "role": "maintainer"
+        },
+        {
+          "sector": "browser-recorder",
+          "role": "reader"
+        }
+      ]
+    },
+    {
+      "key": "reader",
+      "name": "demo-reader",
+      "email": "demo-reader@example.com",
+      "admin": false,
+      "memberships": [
+        {
+          "sector": "portfolio-site",
+          "role": "reader"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "sector": "spine",
+      "file": "engineering-principles.md",
+      "path": "standards/core/engineering-principles.md"
+    },
+    {
+      "sector": "spine",
+      "file": "definition-of-done.md",
+      "path": "standards/core/definition-of-done.md"
+    },
+    {
+      "sector": "spine",
+      "file": "comments.md",
+      "path": "standards/core/comments.md"
+    },
+    {
+      "sector": "spine",
+      "file": "commits.md",
+      "path": "standards/core/commits.md"
+    },
+    {
+      "sector": "spine",
+      "file": "git-branching.md",
+      "path": "standards/core/git-branching.md"
+    },
+    {
+      "sector": "spine",
+      "file": "secrets.md",
+      "path": "standards/core/secrets.md"
+    },
+    {
+      "sector": "spine",
+      "file": "editing-in-place.md",
+      "path": "standards/core/editing-in-place.md"
+    },
+    {
+      "sector": "spine",
+      "file": "docker.md",
+      "path": "standards/stack/docker.md"
+    },
+    {
+      "sector": "spine",
+      "file": "nextjs.md",
+      "path": "standards/stack/nextjs.md"
+    },
+    {
+      "sector": "spine",
+      "file": "appwrite.md",
+      "path": "standards/stack/appwrite.md"
+    },
+    {
+      "sector": "spine",
+      "file": "web-platform.md",
+      "path": "standards/stack/web-platform.md"
+    },
+    {
+      "sector": "spine",
+      "file": "tailwind.md",
+      "path": "standards/stack/tailwind.md"
+    },
+    {
+      "sector": "spine",
+      "file": "production-deployment.md",
+      "path": "procedures/production-deployment.md"
+    },
+    {
+      "sector": "portfolio-site",
+      "file": "FINDING-001-build-depends-on-cms.md",
+      "path": "docs/findings/FINDING-001-build-depends-on-cms.md",
+      "relatesTo": "SPEC-005"
+    },
+    {
+      "sector": "portfolio-site",
+      "file": "FINDING-002-readiness-race.md",
+      "path": "docs/findings/FINDING-002-readiness-race.md",
+      "relatesTo": "SPEC-005"
+    },
+    {
+      "sector": "portfolio-site",
+      "file": "FINDING-003-message-retries.md",
+      "path": "docs/findings/FINDING-003-message-retries.md",
+      "relatesTo": "SPEC-002"
+    },
+    {
+      "sector": "portfolio-site",
+      "file": "SPEC-001-secure-message-delivery.md",
+      "path": "specs/development/SPEC-001-secure-message-delivery.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "portfolio-site",
+      "file": "SPEC-002-reliable-message-processing.md",
+      "path": "specs/development/SPEC-002-reliable-message-processing.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "portfolio-site",
+      "file": "SPEC-003-validated-configuration.md",
+      "path": "specs/development/SPEC-003-validated-configuration.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "portfolio-site",
+      "file": "SPEC-004-public-operation-protection.md",
+      "path": "specs/development/SPEC-004-public-operation-protection.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "portfolio-site",
+      "file": "SPEC-005-production-readiness.md",
+      "path": "specs/development/SPEC-005-production-readiness.md",
+      "status": "approved"
+    },
+    {
+      "sector": "portfolio-site",
+      "file": "SPEC-006-deployment-over-ssh.md",
+      "path": "specs/development/SPEC-006-deployment-over-ssh.md",
+      "status": "approved"
+    },
+    {
+      "sector": "browser-recorder",
+      "file": "FINDING-001-host-uid.md",
+      "path": "docs/findings/FINDING-001-host-uid.md",
+      "relatesTo": "SPEC-002"
+    },
+    {
+      "sector": "browser-recorder",
+      "file": "SPEC-001-local-project-targets.md",
+      "path": "specs/development/SPEC-001-local-project-targets.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "browser-recorder",
+      "file": "SPEC-002-host-owned-files.md",
+      "path": "specs/development/SPEC-002-host-owned-files.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "browser-recorder",
+      "file": "SPEC-003-reliable-task-outcome.md",
+      "path": "specs/development/SPEC-003-reliable-task-outcome.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "browser-recorder",
+      "file": "SPEC-004-clean-frames.md",
+      "path": "specs/development/SPEC-004-clean-frames.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "browser-recorder",
+      "file": "SPEC-005-safe-credentials.md",
+      "path": "specs/development/SPEC-005-safe-credentials.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "browser-recorder",
+      "file": "SPEC-006-unified-recording-pipeline.md",
+      "path": "specs/development/SPEC-006-unified-recording-pipeline.md",
+      "status": "approved"
+    },
+    {
+      "sector": "browser-recorder",
+      "file": "SPEC-007-automated-verification.md",
+      "path": "specs/development/SPEC-007-automated-verification.md"
+    },
+    {
+      "sector": "cortex",
+      "file": "FINDING-001-jwt-without-session.md",
+      "path": "docs/findings/FINDING-001-jwt-without-session.md",
+      "relatesTo": "SPEC-003"
+    },
+    {
+      "sector": "cortex",
+      "file": "FINDING-002-functions-cannot-reach-api.md",
+      "path": "docs/findings/FINDING-002-functions-cannot-reach-api.md",
+      "relatesTo": "SPEC-003"
+    },
+    {
+      "sector": "cortex",
+      "file": "FINDING-003-secret-scanner-gap.md",
+      "path": "docs/findings/FINDING-003-secret-scanner-gap.md",
+      "relatesTo": "SPEC-004"
+    },
+    {
+      "sector": "cortex",
+      "file": "FINDING-004-popover-stays-visible.md",
+      "path": "docs/findings/FINDING-004-popover-stays-visible.md",
+      "relatesTo": "SPEC-005"
+    },
+    {
+      "sector": "cortex",
+      "file": "SPEC-001-knowledge-ingestion.md",
+      "path": "specs/development/SPEC-001-knowledge-ingestion.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "cortex",
+      "file": "SPEC-002-meaning-search.md",
+      "path": "specs/development/SPEC-002-meaning-search.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "cortex",
+      "file": "SPEC-003-access-tokens.md",
+      "path": "specs/development/SPEC-003-access-tokens.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "cortex",
+      "file": "SPEC-004-cli-sync.md",
+      "path": "specs/development/SPEC-004-cli-sync.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "cortex",
+      "file": "SPEC-005-brain-map.md",
+      "path": "specs/development/SPEC-005-brain-map.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "cortex",
+      "file": "SPEC-006-cloud-demo-instance.md",
+      "path": "specs/development/SPEC-006-cloud-demo-instance.md",
+      "status": "approved"
+    },
+    {
+      "sector": "cortex",
+      "file": "SPEC-007-self-hosted-demo-instance.md",
+      "path": "specs/development/SPEC-007-self-hosted-demo-instance.md",
+      "status": "approved",
+      "supersedes": "SPEC-006"
+    },
+    {
+      "sector": "interview-coach",
+      "file": "FINDING-001-quiz-stability.md",
+      "path": "docs/findings/FINDING-001-quiz-stability.md",
+      "relatesTo": "SPEC-002"
+    },
+    {
+      "sector": "interview-coach",
+      "file": "SPEC-001-training-catalog.md",
+      "path": "specs/development/SPEC-001-training-catalog.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "interview-coach",
+      "file": "SPEC-002-knowledge-quiz-mode.md",
+      "path": "specs/development/SPEC-002-knowledge-quiz-mode.md",
+      "status": "implemented"
+    },
+    {
+      "sector": "interview-coach",
+      "file": "SPEC-003-training-reports.md",
+      "path": "specs/development/SPEC-003-training-reports.md",
+      "status": "approved"
+    }
+  ]
+}
