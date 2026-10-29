@@ -1,0 +1,25 @@
+# Safe Login Credentials
+
+## Problem
+
+Recording an admin panel or an account page needs a login, and the only way to provide one was to write the password into the prompt. That put the secret in four bad places: in the worker's process arguments, readable by any local user with `ps`; in `GET /api/tasks`, which returned every prompt in full; in the messages and screenshots sent to the language model, where a typed user name was plainly visible; and, in development, in the backend log, which copied the worker's output stream.
+
+## Design
+
+Secrets get exactly one home and everything else holds a pointer. The user stores named credentials (origin, user name, password) in a local file that git ignores, then picks one by name from a select control in the form. A select cannot be misspelled and the prompt needs no parsing. The backend reads the file on each request that needs it, so edits apply without a restart, and it refuses a file whose mode grants any permission to group or others, printing the `chmod` command instead. Origins must be scheme and host only, with no path, query or user info, and values shorter than 4 characters are rejected, because redacting very short strings would corrupt unrelated log text. The list endpoint returns names and origins only, and no error message ever contains a value. An unknown name is rejected at task creation with status 400 and the code `credentials_not_found`, before any worker starts.
+
+The selected values travel from the backend to the worker only through standard input. Arguments are visible to other processes, and environment variables are inherited by the browser and by the model subprocess. The task object stores only the credential name, and the backend holds the values only for the duration of the spawn call. In the worker the credential is a value object whose representation hides both fields, so an accidental log line cannot print them.
+
+The model never sees the values. The worker uses the `sensitive_data` mechanism of `browser-use` 0.13.10: the model is told placeholder names and types `<secret>password</secret>`, the library substitutes the real value only while the current page matches the credential origin, and it scrubs any occurrence of a value from outgoing model messages. A short instruction tells the model to type only the placeholders into login fields. With a credential in use, the browser is locked to two hosts, the credential host and the target host, which is the library's own recommendation and means a hostile page cannot lead the browser elsewhere with credentials available. A run that ends because the site sent the browser to a disallowed host is reported as failed with the reason code `login_blocked` and names the host.
+
+A second init script masks login fields in every frame with `-webkit-text-security: disc`: password fields, e-mail fields and fields whose name, id or autocomplete hint suggests a user name or password. A field that was ever a password field stays masked after a "show password" toggle changes its type. User name fields are masked too, because otherwise the model's screenshot would show them. Masking is independent of frame cleaning, since protection must not depend on an appearance option. Finally, the backend passes the worker's log stream through a redactor that replaces every secret with `***`, holding back a short tail of each chunk so a secret split across two chunks is still caught.
+
+## Alternatives rejected
+
+An operating system keyring is unreachable from the container. A saved browser session avoids the login but must be created and renewed by hand; it may come later. Blurring regions in encoded frames needs per-frame positions and leaves the model's screenshots unmasked. Encrypting the file just moves the problem to storing the passphrase. Writing secrets through the web UI would need a write endpoint and send them over HTTP.
+
+## Risks and acceptance
+
+A page that prints "Signed in as" with the user name shows it in the recording and the screenshots; the password never appears, because pages do not display it. A model error could type the password placeholder into another field on the right origin, which would be visible; the instruction forbids it and recordings should be reviewed before sharing. Prompt injection on the target site is contained because the model never holds the values and the browser can open two hosts only. A library update could break the placeholder mechanism, so the version is pinned and an integration test captures every model message of a real run and fails if a value appears. Logins through a separate identity provider host are not supported because of the host lock.
+
+Acceptance: no stored value appears in a prompt, API response, progress message, reason text, model message or workspace file; password and user name fields show mask characters in every frame; an unknown name returns 400; a task without credentials behaves as before and the backend starts without a credentials file. Two-factor codes, captchas and more than one credential per task are out of scope.

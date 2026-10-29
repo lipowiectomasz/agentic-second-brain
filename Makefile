@@ -13,7 +13,7 @@ TOOLS_NET := $(RUN) tools-net
 
 .DEFAULT_GOAL := help
 
-.PHONY: help site-deploy cli-image test-perf reindex test-e2e admin-grant admin-revoke appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
+.PHONY: help seed site-deploy cli-image test-perf reindex test-e2e admin-grant admin-revoke appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
 
 help:
 	@printf '%s\n' \
@@ -28,6 +28,7 @@ help:
 	  '  make admin-grant EMAIL=<email>       give a user the organisation admin label' \
 	  '  make admin-revoke EMAIL=<email>      remove it' \
 	  '  make cli-image             build the cortex CLI image (bin/cortex)' \
+	  '  make seed                  load the demo brain and demo accounts (idempotent)' \
 	  '  make site-deploy           build and publish the web app on Appwrite Sites'
 
 appwrite-install:
@@ -111,3 +112,6 @@ test-perf:
 cli-image:
 	$(RUN) tools npm run build -w @cortex/cli
 	docker build -t cortex-cli -f docker/cli.Dockerfile packages/cli
+
+seed:
+	$(TOOLS_NET) npm run seed -w @cortex/infra

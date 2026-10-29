@@ -14,9 +14,11 @@
     "admin-grant": "tsx src/commands/admin-label.ts grant",
     "admin-revoke": "tsx src/commands/admin-label.ts revoke",
     "reindex": "tsx src/commands/reindex.ts",
+    "seed": "tsx src/commands/seed.ts",
     "site-deploy": "tsx src/commands/site-deploy.ts"
   },
   "dependencies": {
+    "@cortex/access": "0.1.0",
     "@cortex/audit": "0.1.0",
     "@cortex/config": "0.1.0",
     "@cortex/core": "0.1.0",
