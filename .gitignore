@@ -10,3 +10,5 @@ coverage/
 *.tsbuildinfo
 docs/documentation/
 .playwright/
+!.env.public.example
+.demo-denylist

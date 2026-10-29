@@ -1,10 +1,13 @@
 ENV ?= local
 ENV_FILE := $(if $(filter local,$(ENV)),.env,.env.$(ENV))
 APPWRITE_VERSION ?= 2.5.0
+APPWRITE_DOMAIN ?= localhost
+PROXY_NETWORK ?= proxy
 APPWRITE_HTTP_PORT ?= 127.0.0.1:18080
 APPWRITE_HTTPS_PORT ?= 127.0.0.1:18443
 APPWRITE_MQTT_PORT ?= 127.0.0.1:18883
 APPWRITE_MQTT_WSS_PORT ?= 127.0.0.1:18084
+PLATFORM_FILES := -f appwrite/docker-compose.yml -f appwrite/docker-compose.runtimes.yml $(if $(filter public,$(ENV)),-f appwrite/docker-compose.public.yml,)
 OVERRIDE := $(if $(wildcard docker-compose.override.yml),-f docker-compose.override.yml,)
 COMPOSE_APP := docker compose -f docker-compose.app.yml $(OVERRIDE)
 RUN := HOST_UID=$(shell id -u) HOST_GID=$(shell id -g) CORTEX_ENV_FILE=$(ENV_FILE) $(COMPOSE_APP) --profile tools run --rm
@@ -13,7 +16,7 @@ TOOLS_NET := $(RUN) tools-net
 
 .DEFAULT_GOAL := help
 
-.PHONY: help seed site-deploy cli-image test-perf reindex test-e2e admin-grant admin-revoke appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
+.PHONY: help seed site-deploy appwrite-public-config demo-check smoke cli-image test-perf reindex test-e2e admin-grant admin-revoke appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
 
 help:
 	@printf '%s\n' \
@@ -29,7 +32,12 @@ help:
 	  '  make admin-revoke EMAIL=<email>      remove it' \
 	  '  make cli-image             build the cortex CLI image (bin/cortex)' \
 	  '  make seed                  load the demo brain and demo accounts (idempotent)' \
-	  '  make site-deploy           build and publish the web app on Appwrite Sites'
+	  '  make site-deploy           build and publish the web app on Appwrite Sites' \
+	  '  make demo-check            scan the demo corpus for secrets and denylisted names' \
+	  '  make smoke                 check the published site and API from outside' \
+	  '' \
+	  'Public instance: add ENV=public (reads .env.public); first install also needs' \
+	  '  make appwrite-install appwrite-public-config ENV=public APPWRITE_DOMAIN=<api host> PUBLIC_IP=<ip>'
 
 appwrite-install:
 	@if [ -f appwrite/.env ]; then echo "appwrite/.env already exists; nothing to do."; else \
@@ -37,7 +45,7 @@ appwrite-install:
 	    --volume "$(CURDIR)/appwrite":/usr/src/code/appwrite:rw \
 	    --entrypoint=install appwrite/appwrite:$(APPWRITE_VERSION) \
 	    --http-port=$(APPWRITE_HTTP_PORT) --https-port=$(APPWRITE_HTTPS_PORT) \
-	    --interactive=N --no-start=true --database=postgresql --domain=localhost && \
+	    --interactive=N --no-start=true --database=postgresql --domain=$(APPWRITE_DOMAIN) && \
 	  docker run --rm --volume "$(CURDIR)/appwrite":/w alpine chown -R $(shell id -u):$(shell id -g) /w && \
 	  sed -i 's/^_APP_VECTORSDB=.*/_APP_VECTORSDB="enabled"/' appwrite/.env && \
 	  sed -i '/^_APP_MQTT_PORT=/d; /^_APP_MQTT_WSS_PORT=/d' appwrite/.env && \
@@ -45,7 +53,7 @@ appwrite-install:
 	fi
 
 platform-up:
-	docker compose -f appwrite/docker-compose.yml -f appwrite/docker-compose.runtimes.yml --env-file appwrite/.env --project-directory appwrite --profile embedding up -d
+	PROXY_NETWORK=$(PROXY_NETWORK) docker compose $(PLATFORM_FILES) --env-file appwrite/.env --project-directory appwrite --profile embedding up -d
 
 up:
 	HOST_UID=$(shell id -u) HOST_GID=$(shell id -g) docker compose --profile embedding up -d
@@ -112,6 +120,16 @@ test-perf:
 cli-image:
 	$(RUN) tools npm run build -w @cortex/cli
 	docker build -t cortex-cli -f docker/cli.Dockerfile packages/cli
+
+appwrite-public-config:
+	@test -n "$(PUBLIC_IP)" -a "$(APPWRITE_DOMAIN)" != "localhost" || { echo "Use: make appwrite-public-config APPWRITE_DOMAIN=<api host> PUBLIC_IP=<server ip>"; exit 2; }
+	sh appwrite/public-env.sh appwrite/.env "$(APPWRITE_DOMAIN)" "$(PUBLIC_IP)"
+
+demo-check:
+	$(TOOLS) npm run demo-check -w @cortex/infra
+
+smoke:
+	$(TOOLS_NET) npm run smoke -w @cortex/infra
 
 seed:
 	$(TOOLS_NET) npm run seed -w @cortex/infra

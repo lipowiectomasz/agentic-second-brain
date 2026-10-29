@@ -15,7 +15,9 @@
     "admin-revoke": "tsx src/commands/admin-label.ts revoke",
     "reindex": "tsx src/commands/reindex.ts",
     "seed": "tsx src/commands/seed.ts",
-    "site-deploy": "tsx src/commands/site-deploy.ts"
+    "site-deploy": "tsx src/commands/site-deploy.ts",
+    "demo-check": "tsx src/commands/demo-check.ts",
+    "smoke": "tsx src/commands/smoke.ts"
   },
   "dependencies": {
     "@cortex/access": "0.1.0",
