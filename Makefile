@@ -13,7 +13,7 @@ TOOLS_NET := $(RUN) tools-net
 
 .DEFAULT_GOAL := help
 
-.PHONY: help cli-image test-perf reindex test-e2e admin-grant admin-revoke appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
+.PHONY: help site-deploy cli-image test-perf reindex test-e2e admin-grant admin-revoke appwrite-install platform-up up down app-up install bootstrap setup doctor test test-integration test-reset lint typecheck build shell
 
 help:
 	@printf '%s\n' \
@@ -27,7 +27,8 @@ help:
 	  '  make test-integration test-e2e       integration and browser tests' \
 	  '  make admin-grant EMAIL=<email>       give a user the organisation admin label' \
 	  '  make admin-revoke EMAIL=<email>      remove it' \
-	  '  make cli-image             build the cortex CLI image (bin/cortex)'
+	  '  make cli-image             build the cortex CLI image (bin/cortex)' \
+	  '  make site-deploy           build and publish the web app on Appwrite Sites'
 
 appwrite-install:
 	@if [ -f appwrite/.env ]; then echo "appwrite/.env already exists; nothing to do."; else \
@@ -90,6 +91,9 @@ shell:
 admin-grant:
 	@test -n "$(EMAIL)" || { echo "Use: make admin-grant EMAIL=<email>"; exit 2; }
 	$(TOOLS_NET) npm run admin-grant -w @cortex/infra -- --email "$(EMAIL)"
+
+site-deploy:
+	$(TOOLS_NET) npm run site-deploy -w @cortex/infra
 
 admin-revoke:
 	@test -n "$(EMAIL)" || { echo "Use: make admin-revoke EMAIL=<email>"; exit 2; }

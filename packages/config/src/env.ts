@@ -14,6 +14,8 @@ export const serverEnvSchema = z.object({
   APP_URL: z.url(),
   CORTEX_EMBEDDING_PREFIX_MODE: z.enum(["none", "nomic"]).default("none"),
   CORTEX_FUNCTION_API_ENDPOINT: z.url().optional(),
+  CORTEX_SITE_DOMAIN: z.string().regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/).optional(),
+  CORTEX_SITE_URL: z.url().optional(),
   GITHUB_OAUTH_CLIENT_ID: z.string().min(1).optional(),
   GITHUB_OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
 });

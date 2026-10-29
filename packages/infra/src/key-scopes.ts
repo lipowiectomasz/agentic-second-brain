@@ -30,6 +30,8 @@ export const developmentKeyScopes = [
   "executions.write",
   "sites.read",
   "sites.write",
+  "rules.read",
+  "rules.write",
   "embeddings.write",
   "health.read",
 ] as const;
