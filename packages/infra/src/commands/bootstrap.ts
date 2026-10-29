@@ -3,7 +3,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { z } from "zod";
 import { ConsoleApi, ConsoleApiError, ensureResource, ignoreConflict } from "../console-api";
 import { upsertEnvFile } from "../env-file";
-import { developmentKeyName, developmentKeyScopes } from "../key-scopes";
+import { developmentKeyName, developmentKeyScopes, webKeyName, webKeyScopes } from "../key-scopes";
 import { envFilePath } from "../repository-paths";
 
 const organizationId = "cortex-org";
@@ -16,6 +16,7 @@ const bootstrapEnvSchema = z.object({
   CORTEX_CONSOLE_PASSWORD: z.string().min(12).optional(),
   GITHUB_OAUTH_CLIENT_ID: z.string().min(1).optional(),
   GITHUB_OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
+  CORTEX_WEB_API_KEY: z.string().min(32).optional(),
 });
 
 const sessionDurationSeconds = 604_800;
@@ -146,6 +147,33 @@ async function main(): Promise<void> {
   log(`api key: rotated (${developmentKeyScopes.length} scopes)`);
 
   const values: Record<string, string> = { APPWRITE_API_KEY: key.secret };
+  const webKeys = existing.keys.filter((candidate) => candidate.name === webKeyName);
+  const [webKey] = webKeys;
+  if (env.CORTEX_WEB_API_KEY !== undefined && webKeys.length === 1 && webKey !== undefined) {
+    await api.request("update web key scopes", {
+      method: "PUT",
+      path: `/organization/projects/${projectId}/keys/${webKey.$id}`,
+      organization: organizationId,
+      body: { name: webKeyName, scopes: webKeyScopes },
+    });
+    log(`web key: kept (${webKeyScopes.length} scopes)`);
+  } else {
+    for (const stale of webKeys) {
+      await api.request("delete old web key", {
+        method: "DELETE",
+        path: `/organization/projects/${projectId}/keys/${stale.$id}`,
+        organization: organizationId,
+      });
+    }
+    const created = await api.request<{ secret: string }>("create web key", {
+      method: "POST",
+      path: `/organization/projects/${projectId}/keys`,
+      organization: organizationId,
+      body: { keyId: "unique()", name: webKeyName, scopes: webKeyScopes },
+    });
+    values.CORTEX_WEB_API_KEY = created.secret;
+    log(`web key: created (${webKeyScopes.length} scopes)`);
+  }
   if (generatedPassword !== null) values.CORTEX_CONSOLE_PASSWORD = generatedPassword;
   const file = envFilePath();
   const current = await readFile(file, "utf8").catch(() => "");

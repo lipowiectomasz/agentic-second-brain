@@ -23,7 +23,7 @@ export async function warmUp(origin: string, domain: string, paths: string[], li
   while (pending.size > 0) {
     for (const pathname of [...pending]) {
       last = await statusFor(origin, domain, pathname);
-      if (last > 0 && last < 500) pending.delete(pathname);
+      if (last >= 200 && last < 400) pending.delete(pathname);
     }
     if (pending.size === 0) return;
     if (Date.now() >= deadline) throw new SiteDeployError("warm_up_failed", `${[...pending].join(", ")} answered ${last}`);

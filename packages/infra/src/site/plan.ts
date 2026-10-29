@@ -2,9 +2,26 @@ import { createHash } from "node:crypto";
 import type { ServerEnv } from "@cortex/config";
 
 export const siteId = "cortex-web";
-export const bundleHashKey = "CORTEX_BUNDLE_HASH";
+export const deployedHashKey = "CORTEX_DEPLOYED_HASH";
 export const secretHashKey = "CORTEX_SECRET_HASH";
 export const secretKeys = ["APPWRITE_API_KEY", "GITHUB_OAUTH_CLIENT_SECRET"] as const;
+export const managedKeys = [
+  "APPWRITE_ENDPOINT",
+  "APPWRITE_INTERNAL_ENDPOINT",
+  "APPWRITE_PROJECT_ID",
+  "APPWRITE_API_KEY",
+  "CORTEX_DATABASE_NAMESPACE",
+  "CORTEX_TEST_DATABASE_NAMESPACE",
+  "CORTEX_MAX_PENDING_PROPOSALS",
+  "CORTEX_EMBEDDING_PREFIX_MODE",
+  "APP_URL",
+  "NEXT_PUBLIC_APPWRITE_ENDPOINT",
+  "NEXT_PUBLIC_APPWRITE_PROJECT_ID",
+  "GITHUB_OAUTH_CLIENT_ID",
+  "GITHUB_OAUTH_CLIENT_SECRET",
+  secretHashKey,
+  "CORTEX_BUNDLE_HASH",
+] as const;
 
 export interface SiteSettings {
   framework: "nextjs";
@@ -30,6 +47,7 @@ export interface SiteEnv {
   CORTEX_SITE_DOMAIN: string;
   CORTEX_SITE_URL: string;
   CORTEX_FUNCTION_API_ENDPOINT: string;
+  CORTEX_WEB_API_KEY: string;
   NEXT_PUBLIC_APPWRITE_ENDPOINT: string;
   NEXT_PUBLIC_APPWRITE_PROJECT_ID: string;
 }
@@ -41,17 +59,14 @@ export interface SiteVariable {
   secret: boolean;
 }
 
-export interface VariableChanges {
-  create: string[];
-  update: Array<{ id: string; key: string }>;
-}
+export type VariableOperation = { kind: "create"; key: string } | { kind: "update"; key: string; id: string } | { kind: "remove"; key: string; id: string };
 
 export function siteVariables(env: ServerEnv, site: SiteEnv): Record<string, string> {
   const variables: Record<string, string> = {
     APPWRITE_ENDPOINT: env.APPWRITE_ENDPOINT,
     APPWRITE_INTERNAL_ENDPOINT: site.CORTEX_FUNCTION_API_ENDPOINT,
     APPWRITE_PROJECT_ID: env.APPWRITE_PROJECT_ID,
-    APPWRITE_API_KEY: env.APPWRITE_API_KEY,
+    APPWRITE_API_KEY: site.CORTEX_WEB_API_KEY,
     CORTEX_DATABASE_NAMESPACE: env.CORTEX_DATABASE_NAMESPACE,
     CORTEX_TEST_DATABASE_NAMESPACE: env.CORTEX_TEST_DATABASE_NAMESPACE,
     CORTEX_MAX_PENDING_PROPOSALS: String(env.CORTEX_MAX_PENDING_PROPOSALS),
@@ -76,23 +91,32 @@ export function isSecretKey(key: string): boolean {
   return (secretKeys as readonly string[]).includes(key);
 }
 
-export function variableChanges(desired: Record<string, string>, current: SiteVariable[]): VariableChanges {
+export function variableOperations(desired: Record<string, string>, current: SiteVariable[]): VariableOperation[] {
   const secretsChanged = current.find((variable) => variable.key === secretHashKey)?.value !== desired[secretHashKey];
-  const changes: VariableChanges = { create: [], update: [] };
+  const operations: VariableOperation[] = [];
   for (const [key, value] of Object.entries(desired)) {
     const found = current.find((variable) => variable.key === key);
-    if (found === undefined) changes.create.push(key);
-    else if (isSecretKey(key) ? secretsChanged || !found.secret : found.value !== value) changes.update.push({ id: found.$id, key });
+    if (found === undefined) operations.push({ kind: "create", key });
+    else if (isSecretKey(key) ? secretsChanged || !found.secret : found.value !== value) operations.push({ kind: "update", key, id: found.$id });
   }
-  return changes;
+  for (const variable of current) {
+    if ((managedKeys as readonly string[]).includes(variable.key) && !(variable.key in desired)) operations.push({ kind: "remove", key: variable.key, id: variable.$id });
+  }
+  return [...operations.filter((operation) => operation.key !== secretHashKey), ...operations.filter((operation) => operation.key === secretHashKey)];
+}
+
+export function deploymentHash(bundleHash: string, desired: Record<string, string>): string {
+  const hash = createHash("sha256").update(`${bundleHash}\n`);
+  for (const key of Object.keys(desired).sort()) hash.update(`${key}=${isSecretKey(key) ? "" : desired[key]}\n`);
+  return hash.digest("hex");
 }
 
 export function settingsDiffer(current: Partial<SiteSettings>): boolean {
   return (Object.keys(siteSettings) as Array<keyof SiteSettings>).some((key) => current[key] !== siteSettings[key]);
 }
 
-export function needsDeployment(input: { bundleHash: string; storedHash: string | null; variablesChanged: boolean; activeReady: boolean }): boolean {
-  return input.variablesChanged || !input.activeReady || input.storedHash !== input.bundleHash;
+export function needsDeployment(input: { deploymentHash: string; storedHash: string | null; activeReady: boolean }): boolean {
+  return !input.activeReady || input.storedHash !== input.deploymentHash;
 }
 
 export type RuleAction = "create" | "exists" | { conflict: string };
