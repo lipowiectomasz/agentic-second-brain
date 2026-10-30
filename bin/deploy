@@ -1,0 +1,62 @@
+#!/bin/sh
+set -eu
+
+usage() {
+  echo "usage: bin/deploy <40-character commit sha>" >&2
+  exit 64
+}
+
+sha="${1:-}"
+case "$sha" in
+  "" | *[!0-9a-f]*) usage ;;
+esac
+[ "${#sha}" -eq 40 ] || usage
+
+cd "${DEPLOY_REPO:-$(git rev-parse --show-toplevel)}"
+
+exec 9>"${DEPLOY_LOCK_FILE:-/tmp/cortex-deploy.lock}"
+flock -n 9 || { echo "another deployment is running" >&2; exit 75; }
+
+step() {
+  printf '==> %s\n' "$*"
+}
+
+dirty="$(git status --porcelain --untracked-files=no)"
+if [ -n "$dirty" ]; then
+  echo "tracked files differ from the repository on the server, refusing to deploy:" >&2
+  printf '%s\n' "$dirty" >&2
+  exit 65
+fi
+git cat-file -e "$sha^{commit}" 2>/dev/null || { echo "unknown commit $sha" >&2; exit 65; }
+old="$(git rev-parse HEAD)"
+git merge-base --is-ancestor "$old" "$sha" || { echo "server checkout $old is not an ancestor of $sha" >&2; exit 65; }
+
+step "backup"
+make backup-db
+if [ -d backups ]; then
+  find backups -name 'appwrite-*.sql.gz' -mtime +14 -delete
+fi
+
+step "checkout $sha"
+git merge --ff-only --quiet "$sha"
+
+step "install"
+make install
+
+step "setup"
+make setup ENV=public
+
+if git diff --quiet "$old" "$sha" -- demo/; then
+  step "seed skipped, demo unchanged"
+else
+  step "seed"
+  make seed ENV=public
+fi
+
+step "site"
+make site-deploy ENV=public
+
+step "smoke"
+make smoke ENV=public
+
+step "deployed $sha"
