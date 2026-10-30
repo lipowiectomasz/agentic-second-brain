@@ -44,11 +44,11 @@
           "role": "maintainer"
         },
         {
-          "sector": "portfolio-site",
+          "sector": "browser-recorder",
           "role": "maintainer"
         },
         {
-          "sector": "browser-recorder",
+          "sector": "portfolio-site",
           "role": "reader"
         }
       ]
