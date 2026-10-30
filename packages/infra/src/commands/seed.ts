@@ -46,6 +46,11 @@ export async function runSeed(log: (line: string) => void): Promise<number> {
       log(`account ${account.name}: created`);
     } else {
       user = existing;
+      const provided = process.env[passwordKeys[account.key]];
+      if (provided !== undefined && provided !== "") {
+        await users.updatePassword({ userId: user.$id, password: provided });
+        log(`account ${account.name}: password synced`);
+      }
     }
     const labels = account.admin ? [...new Set([...user.labels, "admin"])] : user.labels.filter((label) => label !== "admin");
     if (labels.join(",") !== user.labels.join(",")) user = await users.updateLabels({ userId: user.$id, labels });

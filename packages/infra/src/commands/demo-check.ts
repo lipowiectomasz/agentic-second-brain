@@ -17,6 +17,7 @@ export async function runDemoCheck(log: (line: string) => void): Promise<number>
   for (const sector of await readdir(corpusRoot)) {
     for (const name of await readdir(path.join(corpusRoot, sector))) files.set(`${sector}/${name}`, await readFile(path.join(corpusRoot, sector, name), "utf8"));
   }
+  files.set("README.md", await readFile(path.join(repositoryRoot, "README.md"), "utf8"));
   const findings = scanCorpus(files, denylist);
   for (const finding of findings) log(`${finding.file}:${finding.line} ${finding.reason}`);
   log(findings.length === 0 ? `demo corpus clean: ${files.size} files, ${denylist.length} denylisted terms` : `${findings.length} findings`);
