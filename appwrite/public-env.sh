@@ -15,6 +15,15 @@ set_var() {
   fi
 }
 
+set_secret_if_empty() {
+  if ! grep -qE "^$1=\"?[^\"]+" "$file"; then
+    set_var "$1" "$(od -An -N32 -tx1 /dev/urandom | tr -d ' \n')"
+    echo "generated $1"
+  fi
+}
+
+set_secret_if_empty _APP_OPENSSL_KEY_V1
+set_secret_if_empty _APP_EXECUTOR_SECRET
 set_var _APP_DOMAIN "$domain"
 set_var _APP_DOMAIN_TARGET "$domain"
 set_var _APP_DOMAIN_TARGET_CNAME "$domain"
