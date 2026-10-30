@@ -77,7 +77,7 @@ wait
 SSH_ORIGINAL_COMMAND="$code_only" sh "$remote" > /dev/null
 [ "$(git -C "$work/server" rev-parse HEAD)" = "$code_only" ] || fail "server did not fast-forward to $code_only"
 grep -q "^seed" "$work/make.log" && fail "seed ran although demo did not change"
-[ "$(tr '\n' '|' < "$work/make.log")" = "backup-db|install|setup ENV=public|site-deploy ENV=public|smoke ENV=public|" ] || fail "unexpected steps: $(cat "$work/make.log")"
+[ "$(tr '\n' '|' < "$work/make.log")" = "backup-db|install ENV=public|setup ENV=public|site-deploy ENV=public|smoke ENV=public|" ] || fail "unexpected steps: $(cat "$work/make.log")"
 
 : > "$work/make.log"
 SSH_ORIGINAL_COMMAND="$demo_change" sh "$remote" > /dev/null
