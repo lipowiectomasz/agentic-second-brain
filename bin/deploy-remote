@@ -1,0 +1,18 @@
+#!/bin/sh
+set -eu
+
+sha="${SSH_ORIGINAL_COMMAND:-${1:-}}"
+case "$sha" in
+  "" | *[!0-9a-f]*) echo "expected a 40-character commit sha" >&2; exit 64 ;;
+esac
+[ "${#sha}" -eq 40 ] || { echo "expected a 40-character commit sha" >&2; exit 64; }
+
+repo="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$repo"
+git fetch --quiet origin main
+git merge-base --is-ancestor "$sha" origin/main 2>/dev/null || { echo "$sha is not on main" >&2; exit 65; }
+
+script="$(mktemp)"
+trap 'rm -f "$script"' EXIT
+git show "$sha:bin/deploy" > "$script"
+DEPLOY_REPO="$repo" sh "$script" "$sha"

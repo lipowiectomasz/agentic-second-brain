@@ -1,0 +1,88 @@
+#!/bin/sh
+set -eu
+
+source_dir="$(cd "$(dirname "$0")/.." && pwd)"
+work="$(mktemp -d)"
+trap 'rm -rf "$work"' EXIT
+
+export GIT_AUTHOR_NAME=deploy-test GIT_AUTHOR_EMAIL=deploy-test@example.com
+export GIT_COMMITTER_NAME=deploy-test GIT_COMMITTER_EMAIL=deploy-test@example.com
+export DEPLOY_LOCK_FILE="$work/lock"
+
+mkdir -p "$work/stub"
+cat > "$work/stub/make" <<EOF
+#!/bin/sh
+echo "\$*" >> "$work/make.log"
+EOF
+chmod +x "$work/stub/make"
+export PATH="$work/stub:$PATH"
+
+fail() {
+  echo "FAIL: $*" >&2
+  exit 1
+}
+
+expect_exit() {
+  expected="$1"
+  shift
+  set +e
+  output="$("$@" 2>&1)"
+  actual=$?
+  set -e
+  [ "$actual" -eq "$expected" ] || fail "$* exited $actual, expected $expected: $output"
+}
+
+commit() {
+  git -C "$work/dev" add -A
+  git -C "$work/dev" commit -q -m "$1"
+  git -C "$work/dev" rev-parse HEAD
+}
+
+git init -q --bare -b main "$work/origin.git"
+git clone -q "$work/origin.git" "$work/dev" 2>/dev/null
+git -C "$work/dev" checkout -q -b main
+mkdir -p "$work/dev/bin" "$work/dev/demo"
+cp "$source_dir/bin/deploy" "$source_dir/bin/deploy-remote" "$work/dev/bin/"
+echo one > "$work/dev/demo/a.md"
+commit "first" > /dev/null
+git -C "$work/dev" push -q origin main
+git clone -q "$work/origin.git" "$work/server"
+
+echo code > "$work/dev/code.txt"
+code_only="$(commit "code only")"
+echo two > "$work/dev/demo/a.md"
+demo_change="$(commit "demo change")"
+git -C "$work/dev" push -q origin main
+git -C "$work/dev" checkout -q -b other
+echo side > "$work/dev/side.txt"
+off_main="$(commit "off main")"
+git -C "$work/dev" push -q origin other
+
+remote="$work/server/bin/deploy-remote"
+
+expect_exit 64 env SSH_ORIGINAL_COMMAND="rm -rf /" sh "$remote"
+expect_exit 64 env SSH_ORIGINAL_COMMAND="abc123" sh "$remote"
+expect_exit 65 env SSH_ORIGINAL_COMMAND="$off_main" sh "$remote"
+
+echo local >> "$work/server/demo/a.md"
+expect_exit 65 env SSH_ORIGINAL_COMMAND="$code_only" sh "$remote"
+git -C "$work/server" checkout -q demo/a.md
+
+flock "$DEPLOY_LOCK_FILE" sleep 3 &
+sleep 1
+expect_exit 75 env SSH_ORIGINAL_COMMAND="$code_only" sh "$remote"
+wait
+
+: > "$work/make.log"
+SSH_ORIGINAL_COMMAND="$code_only" sh "$remote" > /dev/null
+[ "$(git -C "$work/server" rev-parse HEAD)" = "$code_only" ] || fail "server did not fast-forward to $code_only"
+grep -q "^seed" "$work/make.log" && fail "seed ran although demo did not change"
+[ "$(tr '\n' '|' < "$work/make.log")" = "backup-db|install|setup ENV=public|site-deploy ENV=public|smoke ENV=public|" ] || fail "unexpected steps: $(cat "$work/make.log")"
+
+: > "$work/make.log"
+SSH_ORIGINAL_COMMAND="$demo_change" sh "$remote" > /dev/null
+grep -q "^seed ENV=public$" "$work/make.log" || fail "seed did not run after a demo change"
+
+expect_exit 0 env SSH_ORIGINAL_COMMAND="$demo_change" sh "$remote"
+
+echo "deploy scripts: all checks passed"
