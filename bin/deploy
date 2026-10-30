@@ -41,7 +41,7 @@ step "checkout $sha"
 git merge --ff-only --quiet "$sha"
 
 step "install"
-make install
+make install ENV=public
 
 step "setup"
 make setup ENV=public
