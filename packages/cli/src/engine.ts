@@ -4,7 +4,7 @@ import { CliError, exitCodes } from "./errors";
 import { moveDirectory, readLocal, removeLocal, writeLocal } from "./files";
 import { editedManagedKeys, stripManaged, writeManaged } from "./frontmatter";
 import type { GatewayClient } from "./gateway-client";
-import { indexTargets, renderIndex } from "./index-file";
+import { emptyIndexDirs, indexMarker, indexTargets, renderIndex } from "./index-file";
 import { localPathFor } from "./layout";
 import { scanLocalFiles } from "./local-files";
 import type { Output } from "./output";
@@ -49,6 +49,11 @@ export async function writeIndexes(ctx: SyncContext, manifest: ManifestData): Pr
     for (const target of indexTargets(entries)) {
       const dir = [base, target.dir].filter((part) => part !== "").join("/");
       await writeLocal(ctx.root, dir === "" ? "_INDEX.md" : `${dir}/_INDEX.md`, renderIndex(sector.name, entries, target), 0o444);
+    }
+    for (const empty of emptyIndexDirs(entries)) {
+      const stale = [base, empty, "_INDEX.md"].filter((part) => part !== "").join("/");
+      const content = await readLocal(ctx.root, stale).catch(() => null);
+      if (content?.startsWith(indexMarker) === true) await removeLocal(ctx.root, stale);
     }
   }
 }

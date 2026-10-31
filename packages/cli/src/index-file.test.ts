@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FileEntry } from "@cortex/gateway-contract";
-import { indexMarker, indexTargets, renderIndex } from "./index-file";
+import { emptyIndexDirs, indexMarker, indexTargets, renderIndex } from "./index-file";
 
 const entry = (path: string, docId: string | null, supersededBy: string | null = null): FileEntry => ({
   fileId: path,
@@ -23,6 +23,11 @@ describe("index files", () => {
       { dir: "", scope: "sector" },
       { dir: "specs", scope: "specs" },
     ]);
+  });
+
+  it("names the document folders that no longer hold any file, so their old index can go", () => {
+    expect(emptyIndexDirs(entries)).toEqual(["docs/backlog", "docs/findings"]);
+    expect(emptyIndexDirs([])).toEqual(["specs", "docs/backlog", "docs/findings"]);
   });
 
   it("starts with the marker, sorts by ID and shows supersede links", () => {

@@ -14,6 +14,10 @@ export function indexTargets(entries: FileEntry[]): Array<{ dir: string; scope: 
   return targets;
 }
 
+export function emptyIndexDirs(entries: FileEntry[]): string[] {
+  return (["specs", "backlog", "findings"] as const).filter((scope) => !entries.some((entry) => entry.path.startsWith(scopePrefix[scope]))).map((scope) => scopePrefix[scope].slice(0, -1));
+}
+
 function row(entry: FileEntry, base: string): string {
   const link = base === "" ? entry.path : entry.path.slice(base.length + 1);
   const status = entry.meta.status === null ? "" : entry.meta.status;
