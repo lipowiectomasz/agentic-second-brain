@@ -77,6 +77,7 @@ function sectorFromCwd(env: CommandEnv): string | null {
 
 export async function reserve(env: CommandEnv, flags: Flags, kind: string | undefined): Promise<number> {
   if (kind !== "spec" && kind !== "backlog" && kind !== "finding") throw new CliError("Use: cortex reserve <spec|backlog|finding> [--sector <slug>] [--create <slug>] [--relates <ID>]", exitCodes.usage);
+  if (typeof flags.create === "string" && !/^[a-z0-9-]{1,64}$/.test(flags.create)) throw new CliError("The file slug may contain only lowercase letters, digits and dashes.", exitCodes.usage);
   const ctx = await syncContext(env);
   const slug = typeof flags.sector === "string" ? flags.sector : sectorFromCwd(env);
   if (slug === null) throw new CliError("Run inside brains/<sector>/ or pass --sector <slug>.", exitCodes.usage);
@@ -89,7 +90,6 @@ export async function reserve(env: CommandEnv, flags: Flags, kind: string | unde
   env.out.line("+", "reserved", "success", `${reservation.docId} until ${reservation.reservedUntil.slice(0, 16).replace("T", " ")}`);
   env.out.data(reservation);
   if (typeof flags.create === "string") {
-    if (!/^[a-z0-9-]{1,64}$/.test(flags.create)) throw new CliError("The file slug may contain only lowercase letters, digits and dashes.", exitCodes.usage);
     const localPath = localPathFor(sector, reservedPath(kind as ReservableKind, reservation.docId, flags.create));
     const title = typeof flags.title === "string" ? flags.title : flags.create.replace(/-/g, " ");
     if (!(await writeLocal(env.root, localPath, templateFor(kind as ReservableKind, reservation.docId, title, relates)))) throw new CliError(`${localPath} already exists.`, exitCodes.usage);
